@@ -9,9 +9,9 @@
 \usepackage{lipsum}
 \pagenumbering{gobble}
 \newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+\usepackage[pdftex]{graphicx}
 
 % \usepackage{fullpage}
-% \usepackage[pdftex]{graphicx}
 % \usepackage{amsmath}
 % \usepackage{hyperref}
 % \usepackage{graphicx}
@@ -48,19 +48,25 @@
 
 \section*{Obama faces set}
 \begin{itemize}
-\item \texttt{obama0.jpg}--- 1 face detected--- true positive --- .
-\item \texttt{obama1.jpg}--- 0 faces detected--- false negative --- .
-\item \texttt{obama2.jpg}--- 1 face detected--- true positive --- .
-\item \texttt{obama3.jpg}--- 0 face detected--- false negative --- .
-\item \texttt{obama4.jpg}--- 2 faces detected--- true positive, false positive --- .
-\item \texttt{obama5.jpg}--- 0 faces detected--- false negative --- .
-\item \texttt{obama6.jpg}--- 4 faces detected--- true positive, 3 false positive --- .
-\item \texttt{obama7.jpg}--- 0 face detected--- false negative --- .
-\item \texttt{obama8.jpg}--- 0 face detected--- false negative --- .
-\item \texttt{obama9.jpg}--- 0 face detected--- false negative --- .
+\item \texttt{obama0.jpg}--- 1 face detected--- true positive--- detection is pretty straight forward, whole face is visible.
+\item \texttt{obama1.jpg}--- 0 faces detected--- false negative--- the face is rotated and features are not looking for angled regions.
+\item \texttt{obama2.jpg}--- 1 face detected--- true positive--- there was enough features available in the image such as eyes, nose, ears or hair to find a face.
+\item \texttt{obama3.jpg}--- 0 face detected--- false negative--- the bright light reflection covered half of face what stopped classifier from matching symmetric features of face.
+\item \texttt{obama4.jpg}--- 2 faces detected--- true positive, false positive--- enough part of face was visible to collect needed features to recognize it. The other detection is not correct because of gradual change of blue color in the sky possibly due to \textit{jpg} compression. The effect is visible in \textit{Image: ~/ref{img:false-positive}}.
+\item \texttt{obama5.jpg}--- 0 faces detected--- false negative--- left half of the face is covered with hand what prevents classifier to match certain features such as eyes.
+\item \texttt{obama6.jpg}--- 4 faces detected--- true positive, 3 false positive--- the face is detected but 3 other objects are misclassified as faces. Shading of the hand could resemble human face. Dark square recognized as a face is similar to \texttt{obama4.jpg} case. Mouth are detected as face possibly due to black circular shadow formed in the corner of the lips which may be recognized as eyes.
+\item \texttt{obama7.jpg}--- 0 face detected--- false negative--- the face is not detected because the photo is taken from the side-- no symmetrical features. From this point of view there is no match for eye and hair is covering greater region of head.
+\item \texttt{obama8.jpg}--- 0 face detected--- false negative--- The face is not found because proportions of it are changed due to image being squeezed, what leads to features not being matched.
+\item \texttt{obama9.jpg}--- 0 face detected--- false negative--- .
 \item \texttt{obama10.jpg}--- 1 face detected--- true positive --- .
 \item \texttt{obama11.jpg}--- 2 face detected--- true positive, false positive --- .
 \end{itemize}
+
+\begin{figure}[]
+\centering
+\includegraphics[width=0.1\textwidth]{false-positive.png}
+\caption{False positive in \texttt{obama4.jpg}.\label{fig:false-positive}}
+\end{figure}
 
 \section*{Team faces set}
 \begin{itemize}
