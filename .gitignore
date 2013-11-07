@@ -12,6 +12,10 @@
 *.la
 *.a
 
-#Mac OS X files
+# Mac OS X files
 .DS_Store
 
+# LaTeX
+report/*.aux
+report/*.log
+report/*.pdf

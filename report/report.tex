@@ -1,0 +1,71 @@
+% include a brief discussion about how the limitation of leaf instances affects the performance of the decision tree algorithm.
+
+\documentclass[12pt,a4paper,twocolumn]{article}
+\usepackage{times} % times font
+\usepackage{mathptmx} % times font in maths
+\usepackage[top=0.65in, bottom=0.8in, left=0.8in, right=0.8in]{geometry}
+\usepackage{multirow} %in tables
+\usepackage{caption} % in tables
+\usepackage{lipsum}
+\pagenumbering{gobble}
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+
+% \usepackage{fullpage}
+% \usepackage[pdftex]{graphicx}
+% \usepackage{amsmath}
+% \usepackage{hyperref}
+% \usepackage{graphicx}
+% \usepackage{subfigure}
+% \usepackage{indentfirst} % indent frst paragraph of section
+% \usepackage[usenames,dvipsnames]{color}
+% \newcommand{\ts}{\textsuperscript}
+
+\begin{document}
+
+\twocolumn[
+\begin{@twocolumnfalse}
+\begin{center}
+	\begin{large}
+	{\HRule \\[0.2cm]}
+	\textsc{Object Recognition}
+	{\HRule \\[0.3cm]}
+	\end{large}
+
+	\begin{minipage}{ 0.4\textwidth }
+		\begin{flushleft}
+			Kacper \textbf{Sokol} --- \texttt{ks1591}\\
+			Maciej \textbf{Kumorek} --- \texttt{mk0934}
+		\end{flushleft}
+	\end{minipage}
+	\begin{minipage}{ 0.4\textwidth }
+		\begin{flushright}
+			{Image Processing \& Computer Vision\\
+			COMS30121 $|$ Assignment 1\\[0.3cm]}
+		\end{flushright}
+	\end{minipage}
+\end{center}
+\end{@twocolumnfalse}
+]
+
+\section*{The experiment}
+\lipsum[1] ~\\[0.1cm]
+
+\begin{tabular}{c|cc}
+	\multirow{2}{*}{$M$} & \multicolumn{2}{|c}{Incorrectly Classified Instances in \%} \\
+					   & Training Set & Test Set \\
+	\hline
+	$1$ & $0$ & $1$ \\
+	$2$ & $5$ & $16$ \\
+	$3$ & $7$ & $17$ \\
+	$4$ & $9$ & $19$
+\end{tabular}
+\begin{tiny}
+\captionof{table}{J48 classifier used on heart data set. \\Where $M$ is "minNumObj". \label{tab:heart}} % \\[0.1cm]
+\end{tiny}
+
+\section*{Discussion of the results}
+\lipsum[2-3]
+
+\section*{Conclusions}
+\lipsum[4]
+\end{document}
