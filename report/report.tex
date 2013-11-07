@@ -1,9 +1,9 @@
 % include a brief discussion about how the limitation of leaf instances affects the performance of the decision tree algorithm.
 
 \documentclass[12pt,a4paper,twocolumn]{article}
-\usepackage{times} % times font
-\usepackage{mathptmx} % times font in maths
-\usepackage[top=0.65in, bottom=0.8in, left=0.8in, right=0.8in]{geometry}
+% \usepackage{times} % times font
+% \usepackage{mathptmx} % times font in maths
+\usepackage[top=1in, bottom=1in, left=1in, right=1in]{geometry}
 \usepackage{multirow} %in tables
 \usepackage{caption} % in tables
 \usepackage{lipsum}
@@ -27,7 +27,7 @@
 \begin{center}
 	\begin{large}
 	{\HRule \\[0.2cm]}
-	\textsc{Object Recognition}
+	\textsc{Assignment 2: Object Recognition}
 	{\HRule \\[0.3cm]}
 	\end{large}
 
@@ -38,34 +38,40 @@
 		\end{flushleft}
 	\end{minipage}
 	\begin{minipage}{ 0.4\textwidth }
-		\begin{flushright}
-			{Image Processing \& Computer Vision\\
-			COMS30121 $|$ Assignment 1\\[0.3cm]}
-		\end{flushright}
+		\begin{flushleft}
+			{Image Processing \&\\ Computer Vision $|$ COMS30121\\[0.3cm]}
+		\end{flushleft}
 	\end{minipage}
 \end{center}
 \end{@twocolumnfalse}
 ]
 
-\section*{The experiment}
-\lipsum[1] ~\\[0.1cm]
+\section*{Obama faces set}
+\begin{itemize}
+\item \texttt{obama0.jpg}--- a.
+\item \texttt{obama1.jpg}--- a.
+\item \texttt{obama2.jpg}--- a.
+\item \texttt{obama3.jpg}--- a.
+\item \texttt{obama4.jpg}--- a.
+\item \texttt{obama5.jpg}--- a.
+\item \texttt{obama6.jpg}--- a.
+\item \texttt{obama7.jpg}--- a.
+\item \texttt{obama8.jpg}--- a.
+\item \texttt{obama9.jpg}--- a.
+\item \texttt{obama10.jpg}--- a.
+\item \texttt{obama11.jpg}--- a.
+\end{itemize}
 
-\begin{tabular}{c|cc}
-	\multirow{2}{*}{$M$} & \multicolumn{2}{|c}{Incorrectly Classified Instances in \%} \\
-					   & Training Set & Test Set \\
-	\hline
-	$1$ & $0$ & $1$ \\
-	$2$ & $5$ & $16$ \\
-	$3$ & $7$ & $17$ \\
-	$4$ & $9$ & $19$
-\end{tabular}
-\begin{tiny}
-\captionof{table}{J48 classifier used on heart data set. \\Where $M$ is "minNumObj". \label{tab:heart}} % \\[0.1cm]
-\end{tiny}
-
-\section*{Discussion of the results}
-\lipsum[2-3]
+\section*{Team faces set}
+\begin{itemize}
+\item \texttt{team0.jpg}--- a.
+\item \texttt{team1.jpg}--- a.
+\item \texttt{team2.jpg}--- a.
+\item \texttt{team3.jpg}--- a.
+\item \texttt{team4.jpg}--- a.
+\item \texttt{team5.jpg}--- a.
+\end{itemize}
 
 \section*{Conclusions}
-\lipsum[4]
+\lipsum[1]
 \end{document}
