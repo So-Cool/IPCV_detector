@@ -3,7 +3,7 @@
 \documentclass[11pt,a4paper,twocolumn]{article}
 % \usepackage{times} % times font
 % \usepackage{mathptmx} % times font in maths
-\usepackage[top=0.5in, bottom=0.7in, left=0.5in, right=0.5in]{geometry}
+\usepackage[top=0.5in, bottom=0.6in, left=0.5in, right=0.5in]{geometry}
 \usepackage{multirow} %in tables
 \usepackage{caption} % in tables
 \usepackage{lipsum}
@@ -45,8 +45,8 @@
 }
 
 {\begin{small}
-~\\[0.1cm]
-\emph{Remark:} \textbf{FD}--- face(s) detected; \textbf{TP}--- true positive; \textbf{FP}--- false positive; \textbf{FN}--- false negative
+~\\[0.0000001cm]
+\emph{Remark:} \textbf{FD}--- face(s) detected; \textbf{TP}--- true positive; \textbf{FP}--- false positive; \textbf{FN}--- false negative\\[0.0000001cm]
 \end{small}}
 
 \end{center}
@@ -55,38 +55,37 @@
 
 \section*{Obama faces set}
 \begin{itemize}
-\item \texttt{obama0.jpg}--- 1 \textbf{FD}--- \textbf{TP}--- detection is pretty straight forward, whole face is visible--- model example of face.
+\item \texttt{obama0.jpg}--- 1 \textbf{FD}--- \textbf{TP}--- detection is pretty straight forward, whole face is visible--- model example of face for features detection.
 \item \texttt{obama1.jpg}--- 0 \textbf{FD}--- \textbf{FN}--- the face is angled and features are not trained for rotated regions.
-\item \texttt{obama2.jpg}--- 1 \textbf{FD}--- \textbf{TP}--- there was enough features available in the image such as eyes, nose, ears or hair to find a face.
-\item \texttt{obama3.jpg}--- 0 \textbf{FD}--- \textbf{FN}--- the bright light reflection covered half of face what stopped classifier from matching symmetric features of face.
-\item \texttt{obama4.jpg}--- 2 \textbf{FD}--- \textbf{TP}, \textbf{FP}--- enough part of face was visible to collect needed features to recognize it. The other detection is not correct because of gradual change of blue color in the sky possibly due to \textit{jpg} compression. The effect is visible in \textit{Image: ~/ref{img:false-positive}}.
-\item \texttt{obama5.jpg}--- 0 \textbf{FD}--- \textbf{FN}--- left half of the face is covered with hand what prevents classifier to match certain features such as eyes.
-\item \texttt{obama6.jpg}--- 4 \textbf{FD}--- \textbf{TP}, 3 \textbf{FP}--- the face is detected but 3 other objects are misclassified as faces. Shading of the hand could resemble human face. Dark square recognized as a face is similar to \texttt{obama4.jpg} case. Mouth are detected as face possibly due to black circular shadow formed in the corner of the lips which may be recognized as eyes.
-\item \texttt{obama7.jpg}--- 0 \textbf{FD}--- \textbf{FN}--- the face is not detected because the photo is taken from the side-- no symmetrical features. From this point of view there is no match for eye and hair is covering greater region of head.
-\item \texttt{obama8.jpg}--- 0 \textbf{FD}--- \textbf{FN}--- The face is not found because proportions of it are changed due to image being squeezed, what leads to features not being matched.
-\item \texttt{obama9.jpg}--- 0 \textbf{FD}--- \textbf{FN}--- .
-\item \texttt{obama10.jpg}--- 1 \textbf{FD}--- \textbf{TP} --- .
-\item \texttt{obama11.jpg}--- 2 \textbf{FD}--- \textbf{TP}, \textbf{FP} --- .
+\item \texttt{obama2.jpg}--- 1 \textbf{FD}--- \textbf{TP}--- eyes, nose, ears or hair are clearly visible in image so features are easily matched.
+\item \texttt{obama3.jpg}--- 0 \textbf{FD}--- \textbf{FN}--- the light reflection covered half of face what stopped classifier from matching basic face features.
+\item \texttt{obama4.jpg}--- 2 \textbf{FD}--- \textbf{TP}, \textbf{FP}--- enough part of face was visible to collect needed features to recognize it (sunglasses enforce dark eyes region matching). The other detection is incorrect. The gradual change of blue color matched with facial features is visible(\textit{Figure:\ref{img:false-positive}}) possibly due to \textit{jpg} compression.
+\item \texttt{obama5.jpg}--- 0 \textbf{FD}--- \textbf{FN}--- half of the face is covered what prevents classifier from matching features such as eyes(dark region) or nose(bridge).
+\item \texttt{obama6.jpg}--- 4 \textbf{FD}--- \textbf{TP}, 3 \textbf{FP}--- the face is detected but 3 other objects are misclassified. Shading of the hand could resemble human face. Dark square mis-recognized is similar to \texttt{obama4} case. Mouth are detected as face possibly due to: black circular shadow formed in the corner of the lips-- face, upper lip-- eyes and tooth-- nose.
+\item \texttt{obama7.jpg}--- 0 \textbf{FD}--- \textbf{FN}--- the face is undetected because of the side view-- no symmetrical features visible: eyes with nose in-between.
+\item \texttt{obama8.jpg}--- 0 \textbf{FD}--- \textbf{FN}--- the face is not found because of different proportions due to horizontal distortion, what leads to features(eyes, nose) not being matched.
+\item \texttt{obama9.jpg}--- 0 \textbf{FD}--- \textbf{FN}--- shaded eyes together with left facial profile result in undetected face.
+\item \texttt{obama10.jpg}--- 1 \textbf{FD}--- \textbf{TP}--- all characteristic features of face are visible leading to correct detection.
+\item \texttt{obama11.jpg}--- 2 \textbf{FD}--- \textbf{TP}, \textbf{FP}--- even though face is distorted all features are visible and give correct classification. Second detection is incorrect possibly because of similar reasons as in \texttt{obama6}.
 \end{itemize}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.1\textwidth]{false-positive.png}
-\caption{False positive in \texttt{obama4.jpg}.\label{fig:false-positive}}
+\caption{False positive in \texttt{obama4.jpg}.\label{img:false-positive}\\[0.0000000000000000000000000000001cm]}
 \end{figure}
 
 \section*{Team faces set}
 \begin{itemize}
-\item \texttt{team0.jpg}--- 1 \textbf{FD}--- \textbf{TP} --- .
-\item \texttt{team1.jpg}--- 2 \textbf{FD}--- \textbf{TP}, \textbf{FP} --- .
-\item \texttt{team2.jpg}--- 1 \textbf{FD}--- \textbf{TP} --- .
-\item \texttt{team3.jpg}--- 0 \textbf{FD}--- \textbf{FP} --- .
-\item \texttt{team4.jpg}--- 1 \textbf{FD}--- \textbf{TP} --- .
-\item \texttt{team5.jpg}--- 2 \textbf{FD}--- \textbf{TP}, \textbf{FP} --- .
+\item \texttt{team0.jpg}--- 1 \textbf{FD}--- \textbf{TP}--- the frontal view of face results in correct recognition.
+\item \texttt{team1.jpg}--- 2 \textbf{FD}--- \textbf{TP}, \textbf{FP}--- visible face is correctly recognized as it is frontal picture. The second detection is incorrect possibly due to glasses being recognized as mouth and hair pattern being similar to eyes.
+\item \texttt{team2.jpg}--- 1 \textbf{FD}--- \textbf{TP}--- frontal face photo provides all basic features.
+\item \texttt{team3.jpg}--- 0 \textbf{FD}--- \textbf{FP}--- hair covering face(eyes, nose) prevent classifier from recognizing it.
+\item \texttt{team4.jpg}--- 1 \textbf{FD}--- \textbf{TP}--- even though mouth is covered eyes and nose matched with corresponding features are enough to find a face.
+\item \texttt{team5.jpg}--- 2 \textbf{FD}--- \textbf{TP}, \textbf{FP}--- the face is found despite small bottom region covered. Second detection is wrong possibly due to similar reasons as in \texttt{team1}.
 \end{itemize}
 
 \section*{Conclusions}
-Blah blah blah.
-
+Used features and classifier behave very good with near frontal face photos with non or very small regions covered. Other views are hardly ever recognized with sometimes noise or random objects being misclassified.
 
 \end{document}
