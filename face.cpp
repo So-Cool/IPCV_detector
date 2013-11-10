@@ -13,7 +13,7 @@ using namespace cv;
 void detectAndSave( Mat frame );
 
 /** Global variables */
-String logo_cascade_name = "haarcascade_frontalface_default.xml";
+String logo_cascade_name = "training/dartcascade.xml";// haarcascade_frontalface_default.xml";
 
 CascadeClassifier logo_cascade;
 

@@ -15,6 +15,11 @@
 # Mac OS X files
 .DS_Store
 
+# Open CV files
+output.jpg
+training/dart.vec
+training/dartcascade
+
 # LaTeX
 report/*.aux
 report/*.log
