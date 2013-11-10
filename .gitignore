@@ -18,5 +18,5 @@
 # LaTeX
 report/*.aux
 report/*.log
-report/*.pdf
+# report/*.pdf
 *.psd
