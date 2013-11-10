@@ -13,7 +13,7 @@ using namespace cv;
 void detectAndSave( Mat frame );
 
 /** Global variables */
-String logo_cascade_name = "training/dartcascade.xml";// haarcascade_frontalface_default.xml";
+String logo_cascade_name = "darts_o/original/dartcascade.xml";// haarcascade_frontalface_default.xml";
 
 CascadeClassifier logo_cascade;
 
@@ -43,8 +43,12 @@ void detectAndSave( Mat frame )
 	cvtColor( frame, frame_gray, CV_BGR2GRAY );
 	equalizeHist( frame_gray, frame_gray );
 
+	Mat blurred ;
+	//medianBlur(frame_gray, blurred, 3) ;
+	GaussianBlur(frame_gray, blurred, Size(3, 3), 2.0) ;
+
 	//-- Detect faces
-	logo_cascade.detectMultiScale( frame_gray, faces, 1.1, 1, 0|CV_HAAR_SCALE_IMAGE, Size(50, 50), Size(500,500) );
+	logo_cascade.detectMultiScale( blurred, faces, 1.1, 1, 0|CV_HAAR_SCALE_IMAGE, Size(50, 50), Size(500,500) );
 	std::cout << faces.size() << std::endl;
 
 	for( int i = 0; i < faces.size(); i++ )
