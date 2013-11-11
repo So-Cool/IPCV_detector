@@ -6,6 +6,8 @@
 #include <iostream>
 #include <stdio.h>
 
+#define IMGTHRESHOLD 50
+
 using namespace std;
 using namespace cv;
 
@@ -43,9 +45,81 @@ void detectAndSave( Mat frame )
 	cvtColor( frame, frame_gray, CV_BGR2GRAY );
 	equalizeHist( frame_gray, frame_gray );
 
+	medianBlur(frame_gray, frame_gray, 3) ;
+
+	// threshold to produce solid black(remove shades)
+	for(int i = 0; i < frame_gray.rows; ++i)
+	{
+		for (int j = 0; j < frame_gray.cols; ++j)
+		{
+			uchar tr = frame_gray.at<uchar>(i, j);
+			if (tr < 20)
+			{
+				frame_gray.at<uchar>(i, j) = 5 ; //10 ;
+			}
+			else if (tr < 40)
+			{
+				frame_gray.at<uchar>(i, j) = 25 ; //30 ;
+			}
+			else if (tr < 60)
+			{
+				frame_gray.at<uchar>(i, j) = 45 ; //50 ;
+			}
+			else if (tr < 80)
+			{
+				frame_gray.at<uchar>(i, j) =  65; //70 ;
+			}
+			else if (tr < 100)
+			{
+				frame_gray.at<uchar>(i, j) =  85; //90 ;
+			}
+			else if (tr < 120)
+			{
+				frame_gray.at<uchar>(i, j) =  105; //110 ;
+			}
+			else if (tr < 140)
+			{
+				frame_gray.at<uchar>(i, j) =  125; //130 ;
+			}
+			else if (tr < 160)
+			{
+				frame_gray.at<uchar>(i, j) =  145; //150 ;
+			}
+			else if (tr < 170)
+			{
+				frame_gray.at<uchar>(i, j) =  155; //160 ;
+			}
+			else if (tr < 190)
+			{
+				frame_gray.at<uchar>(i, j) =  175; //180 ;
+			}
+			else if (tr < 210)
+			{
+				frame_gray.at<uchar>(i, j) =  195; //200 ;
+			}
+			else if (tr < 230)
+			{
+				frame_gray.at<uchar>(i, j) =  215; //220 ;
+			}
+			else if (tr < 250)
+			{
+				frame_gray.at<uchar>(i, j) =  235; //240 ;
+			}
+			else if (tr < 255)
+			{
+				frame_gray.at<uchar>(i, j) =  250; //255 ;
+			}
+			// else
+			// {
+			// 	frame_gray.at<uchar>(i, j) = 0 ;
+			// }
+		}
+	}
+
+	// Blur the image to smooth the noise
 	Mat blurred ;
-	//medianBlur(frame_gray, blurred, 3) ;
-	GaussianBlur(frame_gray, blurred, Size(3, 3), 2.0) ;
+	GaussianBlur(frame_gray, blurred, Size(3, 3), 1.2) ;
+	medianBlur(blurred, blurred, 3) ;
 
 	//-- Detect faces
 	logo_cascade.detectMultiScale( blurred, faces, 1.1, 1, 0|CV_HAAR_SCALE_IMAGE, Size(50, 50), Size(500,500) );
