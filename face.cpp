@@ -7,6 +7,16 @@
 #include <stdio.h>
 
 #define IMGTHRESHOLD 50
+#define HOUGHDETECTTRESHOLD 70
+
+//line
+#define DTH 100 //delta angle
+#define LINETHRESHOLD 235
+
+//circle
+#define RMIN 5
+#define RMAX 75
+#define CIRCLETHRESHOLD 220
 
 using namespace std;
 using namespace cv;
@@ -47,16 +57,6 @@ void sharpen(cv::Mat &input, int size, cv::Mat &out)
 	// intialise the output using the input
 	blurredOutput.create(input.size(), CV_64F) ; //input.type());
 
-	// create the Gaussian kernel in 1D 
-	//cv::Mat kX = cv::getGaussianKernel(size, -1);
-	//cv::Mat kY = cv::getGaussianKernel(size, -1);
-	
-	// make it 2D multiply one by the transpose of the other
-	//cv::Mat kernel = kX * kY.t();
-
-	//CREATING A DIFFERENT IMAGE kernel WILL BE NEEDED
-	//TO PERFORM OPERATIONS OTHER THAN GUASSIAN BLUR!!!
-
 	//was CV_64FC1
 	cv::Mat kernel = cv::Mat(size, size, CV_64F, cv::Scalar::all(-1));
 	kernel.at<double>(size/2, size/2) = size*size;
@@ -96,17 +96,6 @@ void sharpen(cv::Mat &input, int size, cv::Mat &out)
 					sum += imageval * kernalval;							
 				}
 			}
-			//std::cout << "Sum: "<< sum << " sum uchar " << (uchar)sum << " sum%mod " << (char)sum%255 << std::endl;
-			// set the output value as the sum of the convolution
-
-			// if(sum > 255)
-			// {
-			// 	sum = 255;
-			// }
-			// else if (sum < 0)
-			// {
-			// 	sum = 0;
-			// }
 
 			blurredOutput.at<double>(i, j) = (double)sum;
 		}
@@ -115,6 +104,165 @@ void sharpen(cv::Mat &input, int size, cv::Mat &out)
 	cv::Mat temp8b ;
 	cv::normalize(blurredOutput, temp8b, 0, 255, cv::NORM_MINMAX);
 	temp8b.convertTo(out, CV_8U);
+
+}
+
+//line detect
+void sobel(const cv::Mat& image, cv::Mat& xDeriv, cv::Mat& yDeriv, cv::Mat& grad, cv::Mat& arc)
+{
+	double minVal, maxVal;
+	cv::Sobel(image, xDeriv, CV_64F, 1, 0);
+	cv::Sobel(image, yDeriv, CV_64F, 0, 1);
+	cv::Mat xPow, yPow;
+	cv::pow(xDeriv, 2, xPow);
+	cv::pow(yDeriv, 2, yPow);
+	cv::Mat temp = xPow + yPow;
+	cv::Mat tempFloat;
+	temp.convertTo(tempFloat, CV_64F);
+	cv::Mat gradNorm;
+	cv::sqrt(tempFloat, grad);
+	cv::Mat divided, arcNorm;
+	arc = ( cv::Mat(xDeriv.rows, xDeriv.cols, CV_64F) ).clone() ;
+	cv::divide(yDeriv, xDeriv, divided);
+	cout << "sobel doing" << endl;
+	for(int i = 0; i < divided.rows; i++)
+	{
+		for(int j =0; j < divided.cols; j++)
+		{	
+			arc.at<double>(i, j) = (double)atan2(yDeriv.at<double>(i,j), xDeriv.at<double>(i,j)) ;//* 180 / PI;
+		}
+	}
+	cout << "sobel done" << endl;
+}
+
+void detectEdges(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
+{
+	// cv::vector<cv::Vec3d> circles ; //x,y,r
+	// std::vector<std::vector<std::vector<int> > > houghSpace (HOUGHY, std::vector<std::vector<int> > (HOUGHX, std::vector<int>(RMAX-RMIN, 0) ) ) ;
+	cv::Mat lineHoughSpace = cv::Mat(grad.rows, grad.cols, CV_64F, cv::Scalar::all(0));
+	cv::Mat circleHoughSpace = cv::Mat(grad.rows, grad.cols, CV_64F, cv::Scalar::all(0));
+	// threshold the gradient image after normalization
+	// cv::Mat gradNorm(grad.rows, grad.cols, CV_64F) ;
+
+	for(int i = 0; i < grad.rows; ++i)
+	{
+		for (int j = 0; j < grad.cols; ++j)
+		{
+			if (grad.at<double>(i, j) > HOUGHDETECTTRESHOLD)
+			{
+
+				//LINE DETECTION
+				// for (int th = round(arc.at<double>(i, j)-DTH); th < round(arc.at<double>(i, j)+DTH); ++th)
+				int trows = lineHoughSpace.rows ;
+				int tcols = lineHoughSpace.cols ;
+				for (int th = 0; th < 628; ++th)
+				{
+					// cout << double(th)/100 << endl;
+					double rho = i * cos(double(th)/100)+ j*sin(double(th)/100) ;
+
+					//invrease haff pace
+					if(round(rho)<trows && round(rho)>=0 && round(th)<tcols && round(th)>0)
+					{
+						lineHoughSpace.at<double>(round(rho), round(th) ) += 1 ;
+					}
+				}
+
+				// CIRCLE DETECTION
+				for (int r = RMIN; r < RMAX; ++r)
+				{
+					//shifted by RMAX to make scaling easier task
+					double x1 = j+r*cos(arc.at<double>(i,j)) ;
+					double x2 = j-r*cos(arc.at<double>(i,j)) ;
+					double y1 = i+r*sin(arc.at<double>(i,j)) ;
+					double y2 = i-r*sin(arc.at<double>(i,j)) ;
+
+					int trows = circleHoughSpace.rows ;
+					int tcols = circleHoughSpace.cols ;
+
+					if ( round(y1)<trows && round(y1)>0 && round(x1)>0 && round(x1)<tcols )
+					{
+						circleHoughSpace.at<double>(round(y1), round(x1) ) += 1 ;
+						// houghSpace[y1*HOUGHY/trows][x1*HOUGHX/tcols][r-RMIN] += 1 ;
+					}
+					if ( round(y1)<trows && round(y1)>0 && round(x2)>0 && round(x2)<tcols )
+					{
+						circleHoughSpace.at<double>( round(y1), round(x2)  ) += 1 ;
+						// houghSpace[y1*HOUGHY/trows][x2*HOUGHX/tcols][r-RMIN] += 1 ;
+					}
+					if ( round(y2)<trows && round(y2)>0 && round(x1)>0 && round(x1)<tcols )
+					{
+						circleHoughSpace.at<double>(  round(y2), round(x1)  ) += 1 ;
+						// houghSpace[y2*HOUGHY/trows][x1*HOUGHX/tcols][r-RMIN] += 1 ;
+					}
+					if ( round(y2)<trows && round(y2)>0 && round(x2)>0 && round(x2)<tcols )
+					{
+						circleHoughSpace.at<double>(  round(y2), round(x2)  ) += 1 ;
+						// houghSpace[y2*HOUGHY/trows][x2*HOUGHX/tcols][r-RMIN] += 1 ;
+
+					}
+				}
+			}
+		}
+	}
+
+	//print haff space fol LINE
+	//take logs
+	for (int i = 0; i < lineHoughSpace.rows; ++i)
+	{
+		for (int j = 0; j < lineHoughSpace.cols; ++j)
+		{
+			if (lineHoughSpace.at<double>(i,j) != 0)
+			{
+				lineHoughSpace.at<double>(i,j) = log( lineHoughSpace.at<double>(i,j) ) ;
+			}
+		}
+	}
+	//scale
+	cv::Mat temp8Bit;
+	cv::normalize(lineHoughSpace, temp8Bit, 0, 255, cv::NORM_MINMAX);
+	temp8Bit.convertTo(lineHoughSpace, CV_8U);
+	for (int i = 0; i < lineHoughSpace.rows; ++i)
+	{
+		for (int j = 0; j < lineHoughSpace.cols; ++j)
+		{
+			if (lineHoughSpace.at<uchar>(i,j) < LINETHRESHOLD)//220 pretty good
+			{
+				lineHoughSpace.at<uchar>(i,j) = 0  ;
+			}
+		}
+	}
+	//convert
+	cv::imshow("Hough space", lineHoughSpace) ;
+	waitKey();
+
+	//print haff space fol CIRCLE
+	//take logs
+	for (int i = 0; i < circleHoughSpace.rows; ++i)
+	{
+		for (int j = 0; j < circleHoughSpace.cols; ++j)
+		{
+			if (circleHoughSpace.at<double>(i,j) != 0)
+			{
+				circleHoughSpace.at<double>(i,j) = log( circleHoughSpace.at<double>(i,j) ) ;
+			}
+		}
+	}
+	//scale
+	cv::normalize(circleHoughSpace, temp8Bit, 0, 255, cv::NORM_MINMAX);
+	temp8Bit.convertTo(circleHoughSpace, CV_8U);
+	for (int i = 0; i < circleHoughSpace.rows; ++i)
+	{
+		for (int j = 0; j < circleHoughSpace.cols; ++j)
+		{
+			if (circleHoughSpace.at<uchar>(i,j) < CIRCLETHRESHOLD)//220 pretty good
+			{
+				circleHoughSpace.at<uchar>(i,j) = 0  ;
+			}
+		}
+	}
+	//convert
+	cv::imshow("Hough space", circleHoughSpace) ;
+	waitKey();
 
 }
 
@@ -131,6 +279,8 @@ void detectAndSave( Mat frame )
 	// medianBlur(frame_gray, frame_gray, 3) ;
 	imshow("gray",frame_gray);
 	waitKey();
+
+	Mat ory = frame_gray.clone();
 
 	GaussianBlur(frame_gray, frame_gray, Size(3, 3), 1) ; //0.7 was OK
 	imshow("gaus blurred",frame_gray);
@@ -158,6 +308,19 @@ void detectAndSave( Mat frame )
 	}
 	imshow("prev",frame_gray);
 	waitKey();
+
+
+	//detect lines
+	cv::Mat xDeriv, yDeriv, grad, arc, output ;//frame_gray
+	sobel(ory, xDeriv, yDeriv, grad, arc);
+	detectEdges(grad, arc, output);
+	//detect lines only in circle with adaptive threshold
+	//in selectedby circles regionns look for line hough spectrum similar to the one of dartboard.bmp
+	//najlepiej zrob thersholiding and XOR
+
+
+
+
 
 	// Blur the image to smooth the noise
 	Mat blurred ;
