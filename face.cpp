@@ -150,7 +150,7 @@ void detectLines(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
 	diagonalSize *= 2; 
 
 	std::vector<std::vector<int> > houghSpace (diagonalSize, std::vector<int>(628, 0) ) ;
-	cv::Mat lineHoughSpace = cv::Mat(628, diagonalSize, CV_64F, cv::Scalar::all(0));
+	cv::Mat lineHoughSpace = cv::Mat(diagonalSize, 628, CV_64F, cv::Scalar::all(0)); //628
 
 	int ujemne = 0;
 	int dodatnie = 0;
@@ -170,6 +170,7 @@ void detectLines(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
 				int tcols = lineHoughSpace.cols ;
 				for (int th = (arc.at<double>(i,j)*100)-DTH; th < (arc.at<double>(i,j)*100)+DTH; ++th)
 				{
+					if (th<0) continue;
 					// cout << double(th)/100 << endl;
 					// double rho = i * cos(double(th)/100)+ j*sin(double(th)/100) ; //first
 					double rho = j * cos(double(th)/100)+ i*sin(double(th)/100) ; //second
@@ -193,8 +194,10 @@ void detectLines(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
 					// create hough space
 					// if(round(double(rho/10))<trows && round(double(rho/10))>=0 && round(double(th)/10)<tcols && round(double(th/10))>0)
 					// {
+						// cout << "first" << round(th) << " " << round(rho+diagonalSize/2) << endl;
 						houghSpace[round(rho+diagonalSize/2)][round(th) ] += 1 ;
-						lineHoughSpace.at<double>(round(th), round(rho) ) += 1 ;
+						// cout << "second" << round(th) << " " << round(rho+diagonalSize/2) << endl;
+						lineHoughSpace.at<double>(round(rho+diagonalSize/2), round(th)) += 1 ;
 					// }
 
 				}
@@ -202,9 +205,10 @@ void detectLines(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
 		}
 	}
 
-	// cout << ujemne << " " << dodatnie << endl;
+	// cout << "ujemne: " << ujemne << " " << dodatnie << endl;
 	// cout << rem1 << "  " << rem2 << endl;
 
+	cout << "tu" << endl;
 
 	//print haff space fol LINE
 	//take logs
@@ -222,16 +226,16 @@ void detectLines(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
 	cv::Mat temp8Bit;
 	cv::normalize(lineHoughSpace, temp8Bit, 0, 255, cv::NORM_MINMAX);
 	temp8Bit.convertTo(lineHoughSpace, CV_8U);
-	for (int i = 0; i < lineHoughSpace.rows; ++i)
-	{
-		for (int j = 0; j < lineHoughSpace.cols; ++j)
-		{
-			if (lineHoughSpace.at<uchar>(i,j) < LINETHRESHOLD)//220 pretty good
-			{
-				lineHoughSpace.at<uchar>(i,j) = 0  ;
-			}
-		}
-	}
+	// for (int i = 0; i < lineHoughSpace.rows; ++i)
+	// {
+	// 	for (int j = 0; j < lineHoughSpace.cols; ++j)
+	// 	{
+	// 		if (lineHoughSpace.at<uchar>(i,j) < LINETHRESHOLD)//220 pretty good
+	// 		{
+	// 			lineHoughSpace.at<uchar>(i,j) = 0  ;
+	// 		}
+	// 	}
+	// }
 	//convert
 	cv::imshow("Hough space", lineHoughSpace) ;
 	waitKey();
