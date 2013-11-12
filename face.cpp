@@ -10,13 +10,17 @@
 #define HOUGHDETECTTRESHOLD 70
 
 //line
-#define DTH 100 //delta angle
+//5 degrees is 0,087
+#define DTH 9 //delta angle * 100
 #define LINETHRESHOLD 235
 
 //circle
 #define RMIN 5
 #define RMAX 75
 #define CIRCLETHRESHOLD 220
+
+// theta ranges from 0-2PI
+// tho is dynamically adjusted from 0 to max_val based on diagonal
 
 using namespace std;
 using namespace cv;
@@ -155,15 +159,15 @@ void detectEdges(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
 				// for (int th = round(arc.at<double>(i, j)-DTH); th < round(arc.at<double>(i, j)+DTH); ++th)
 				int trows = lineHoughSpace.rows ;
 				int tcols = lineHoughSpace.cols ;
-				for (int th = 0; th < 628; ++th)
+				for (int th = (arc.at<double>(i,j)*100)-DTH; th < (arc.at<double>(i,j)*100)+DTH; ++th)
 				{
 					// cout << double(th)/100 << endl;
 					double rho = i * cos(double(th)/100)+ j*sin(double(th)/100) ;
 
 					//invrease haff pace
-					if(round(rho)<trows && round(rho)>=0 && round(th)<tcols && round(th)>0)
+					if(round(double(rho/10))<trows && round(double(rho/10))>=0 && round(double(th)/10)<tcols && round(double(th/10))>0)
 					{
-						lineHoughSpace.at<double>(round(rho), round(th) ) += 1 ;
+						lineHoughSpace.at<double>(round(double(rho/10)), round(double(th/10)) ) += 1 ;
 					}
 				}
 
