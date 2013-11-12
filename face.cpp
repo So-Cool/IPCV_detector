@@ -141,7 +141,7 @@ void sobel(const cv::Mat& image, cv::Mat& xDeriv, cv::Mat& yDeriv, cv::Mat& grad
 
 void detectLines(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
 {
-	cv::Mat lineHoughSpace = cv::Mat(grad.rows, grad.cols, CV_64F, cv::Scalar::all(0));
+	// cv::Mat lineHoughSpace = cv::Mat(grad.rows, grad.cols, CV_64F, cv::Scalar::all(0));
 
 	// theta ranges from 0-2PI = 0 - 628
 	// tho is dynamically adjusted from 0 to max_val based on diagonal
@@ -150,6 +150,7 @@ void detectLines(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
 	diagonalSize *= 2; 
 
 	std::vector<std::vector<int> > houghSpace (diagonalSize, std::vector<int>(628, 0) ) ;
+	cv::Mat lineHoughSpace = cv::Mat(628, diagonalSize, CV_64F, cv::Scalar::all(0));
 
 	int ujemne = 0;
 	int dodatnie = 0;
@@ -175,10 +176,10 @@ void detectLines(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
 					// cout << rho+diagonalSize/2 << endl;
 
 					//invrease haff pace
-					if(round(double(rho/10))<trows && round(double(rho/10))>=0 && round(double(th)/10)<tcols && round(double(th/10))>0)
-					{
-						lineHoughSpace.at<double>(round(double(rho/10)), round(double(th/10)) ) += 1 ;
-					}
+					// if(round(double(rho/10))<trows && round(double(rho/10))>=0 && round(double(th)/10)<tcols && round(double(th/10))>0)
+					// {
+					// 	lineHoughSpace.at<double>(round(double(rho/10)), round(double(th/10)) ) += 1 ;
+					// }
 
 					if (rho+diagonalSize/2 <0)
 					{
@@ -193,6 +194,7 @@ void detectLines(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
 					// if(round(double(rho/10))<trows && round(double(rho/10))>=0 && round(double(th)/10)<tcols && round(double(th/10))>0)
 					// {
 						houghSpace[round(rho+diagonalSize/2)][round(th) ] += 1 ;
+						lineHoughSpace.at<double>(round(th), round(rho) ) += 1 ;
 					// }
 
 				}
