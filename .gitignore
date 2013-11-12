@@ -20,6 +20,7 @@ output.jpg
 training/dart.vec
 training/dartcascade
 darts_o/*.jpg
+training/smalldart.bmp
 
 # LaTeX
 report/*.aux

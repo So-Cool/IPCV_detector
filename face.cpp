@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <stdio.h>
+#include <math.h>       /* pow */
 
 #define IMGTHRESHOLD 50
 #define HOUGHDETECTTRESHOLD 70
@@ -144,13 +145,16 @@ void detectLines(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
 
 	// theta ranges from 0-2PI = 0 - 628
 	// tho is dynamically adjusted from 0 to max_val based on diagonal
-	int diagonalSize = round(sqrt((grad.rows)^2 + (grad.cols)^2));
+	int diagonalSize = round(sqrt((double)std::pow((double)(grad.rows), 2) + (double)std::pow((double)(grad.cols),2)));
+	// cout << diagonalSize << "  " << grad.rows << "  " << grad.cols << endl ;
+	diagonalSize *= 2; 
 
-	std::vector<std::vector<int> > houghSpace (628, std::vector<int>(diagonalSize, 0) ) ;
+	std::vector<std::vector<int> > houghSpace (diagonalSize, std::vector<int>(628, 0) ) ;
 
 	int ujemne = 0;
 	int dodatnie = 0;
-
+	double rem1 = 0;
+	double rem2 = 0;
 
 	for(int i = 0; i < grad.rows; ++i)
 	{
@@ -168,7 +172,7 @@ void detectLines(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
 					// cout << double(th)/100 << endl;
 					// double rho = i * cos(double(th)/100)+ j*sin(double(th)/100) ; //first
 					double rho = j * cos(double(th)/100)+ i*sin(double(th)/100) ; //second
-					cout << rho << endl;
+					// cout << rho+diagonalSize/2 << endl;
 
 					//invrease haff pace
 					if(round(double(rho/10))<trows && round(double(rho/10))>=0 && round(double(th)/10)<tcols && round(double(th/10))>0)
@@ -176,25 +180,29 @@ void detectLines(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
 						lineHoughSpace.at<double>(round(double(rho/10)), round(double(th/10)) ) += 1 ;
 					}
 
-					if (rho <0)
+					if (rho+diagonalSize/2 <0)
 					{
 						ujemne++;
 					} else {
 						dodatnie++;
 					}
+					if (rho<rem1) rem1 = rho;
+					if (rho>rem2) rem2 = rho;
 
 					// create hough space
-					if(round(double(rho/10))<trows && round(double(rho/10))>=0 && round(double(th)/10)<tcols && round(double(th/10))>0)
-					{
-						lineHoughSpace.at<double>(round(double(rho/10)), round(double(th/10)) ) += 1 ;
-					}
+					// if(round(double(rho/10))<trows && round(double(rho/10))>=0 && round(double(th)/10)<tcols && round(double(th/10))>0)
+					// {
+						houghSpace[round(rho+diagonalSize/2)][round(th) ] += 1 ;
+					// }
 
 				}
 			}
 		}
 	}
 
-	cout << ujemne << " " << dodatnie << endl;
+	// cout << ujemne << " " << dodatnie << endl;
+	// cout << rem1 << "  " << rem2 << endl;
+
 
 	//print haff space fol LINE
 	//take logs
