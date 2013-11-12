@@ -19,9 +19,6 @@
 #define RMAX 75
 #define CIRCLETHRESHOLD 220
 
-// theta ranges from 0-2PI
-// tho is dynamically adjusted from 0 to max_val based on diagonal
-
 using namespace std;
 using namespace cv;
 
@@ -139,14 +136,21 @@ void sobel(const cv::Mat& image, cv::Mat& xDeriv, cv::Mat& yDeriv, cv::Mat& grad
 	cout << "sobel done" << endl;
 }
 
-void detectEdges(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
+
+
+void detectLines(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
 {
-	// cv::vector<cv::Vec3d> circles ; //x,y,r
-	// std::vector<std::vector<std::vector<int> > > houghSpace (HOUGHY, std::vector<std::vector<int> > (HOUGHX, std::vector<int>(RMAX-RMIN, 0) ) ) ;
 	cv::Mat lineHoughSpace = cv::Mat(grad.rows, grad.cols, CV_64F, cv::Scalar::all(0));
-	cv::Mat circleHoughSpace = cv::Mat(grad.rows, grad.cols, CV_64F, cv::Scalar::all(0));
-	// threshold the gradient image after normalization
-	// cv::Mat gradNorm(grad.rows, grad.cols, CV_64F) ;
+
+	// theta ranges from 0-2PI = 0 - 628
+	// tho is dynamically adjusted from 0 to max_val based on diagonal
+	int diagonalSize = round(sqrt((grad.rows)^2 + (grad.cols)^2));
+
+	std::vector<std::vector<int> > houghSpace (628, std::vector<int>(diagonalSize, 0) ) ;
+
+	int ujemne = 0;
+	int dodatnie = 0;
+
 
 	for(int i = 0; i < grad.rows; ++i)
 	{
@@ -162,14 +166,83 @@ void detectEdges(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
 				for (int th = (arc.at<double>(i,j)*100)-DTH; th < (arc.at<double>(i,j)*100)+DTH; ++th)
 				{
 					// cout << double(th)/100 << endl;
-					double rho = i * cos(double(th)/100)+ j*sin(double(th)/100) ;
+					// double rho = i * cos(double(th)/100)+ j*sin(double(th)/100) ; //first
+					double rho = j * cos(double(th)/100)+ i*sin(double(th)/100) ; //second
+					cout << rho << endl;
 
 					//invrease haff pace
 					if(round(double(rho/10))<trows && round(double(rho/10))>=0 && round(double(th)/10)<tcols && round(double(th/10))>0)
 					{
 						lineHoughSpace.at<double>(round(double(rho/10)), round(double(th/10)) ) += 1 ;
 					}
+
+					if (rho <0)
+					{
+						ujemne++;
+					} else {
+						dodatnie++;
+					}
+
+					// create hough space
+					if(round(double(rho/10))<trows && round(double(rho/10))>=0 && round(double(th)/10)<tcols && round(double(th/10))>0)
+					{
+						lineHoughSpace.at<double>(round(double(rho/10)), round(double(th/10)) ) += 1 ;
+					}
+
 				}
+			}
+		}
+	}
+
+	cout << ujemne << " " << dodatnie << endl;
+
+	//print haff space fol LINE
+	//take logs
+	for (int i = 0; i < lineHoughSpace.rows; ++i)
+	{
+		for (int j = 0; j < lineHoughSpace.cols; ++j)
+		{
+			if (lineHoughSpace.at<double>(i,j) != 0)
+			{
+				lineHoughSpace.at<double>(i,j) = log( lineHoughSpace.at<double>(i,j) ) ;
+			}
+		}
+	}
+	//scale
+	cv::Mat temp8Bit;
+	cv::normalize(lineHoughSpace, temp8Bit, 0, 255, cv::NORM_MINMAX);
+	temp8Bit.convertTo(lineHoughSpace, CV_8U);
+	for (int i = 0; i < lineHoughSpace.rows; ++i)
+	{
+		for (int j = 0; j < lineHoughSpace.cols; ++j)
+		{
+			if (lineHoughSpace.at<uchar>(i,j) < LINETHRESHOLD)//220 pretty good
+			{
+				lineHoughSpace.at<uchar>(i,j) = 0  ;
+			}
+		}
+	}
+	//convert
+	cv::imshow("Hough space", lineHoughSpace) ;
+	waitKey();
+}
+
+
+
+void detectCircles(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
+{
+	// cv::vector<cv::Vec3d> circles ; //x,y,r
+	// std::vector<std::vector<std::vector<int> > > houghSpace (HOUGHY, std::vector<std::vector<int> > (HOUGHX, std::vector<int>(RMAX-RMIN, 0) ) ) ;
+	cv::Mat circleHoughSpace = cv::Mat(grad.rows, grad.cols, CV_64F, cv::Scalar::all(0));
+	// threshold the gradient image after normalization
+	// cv::Mat gradNorm(grad.rows, grad.cols, CV_64F) ;
+
+	for(int i = 0; i < grad.rows; ++i)
+	{
+		for (int j = 0; j < grad.cols; ++j)
+		{
+			if (grad.at<double>(i, j) > HOUGHDETECTTRESHOLD)
+			{
 
 				// CIRCLE DETECTION
 				for (int r = RMIN; r < RMAX; ++r)
@@ -209,38 +282,10 @@ void detectEdges(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
 		}
 	}
 
-	//print haff space fol LINE
-	//take logs
-	for (int i = 0; i < lineHoughSpace.rows; ++i)
-	{
-		for (int j = 0; j < lineHoughSpace.cols; ++j)
-		{
-			if (lineHoughSpace.at<double>(i,j) != 0)
-			{
-				lineHoughSpace.at<double>(i,j) = log( lineHoughSpace.at<double>(i,j) ) ;
-			}
-		}
-	}
-	//scale
-	cv::Mat temp8Bit;
-	cv::normalize(lineHoughSpace, temp8Bit, 0, 255, cv::NORM_MINMAX);
-	temp8Bit.convertTo(lineHoughSpace, CV_8U);
-	for (int i = 0; i < lineHoughSpace.rows; ++i)
-	{
-		for (int j = 0; j < lineHoughSpace.cols; ++j)
-		{
-			if (lineHoughSpace.at<uchar>(i,j) < LINETHRESHOLD)//220 pretty good
-			{
-				lineHoughSpace.at<uchar>(i,j) = 0  ;
-			}
-		}
-	}
-	//convert
-	cv::imshow("Hough space", lineHoughSpace) ;
-	waitKey();
 
 	//print haff space fol CIRCLE
 	//take logs
+	cv::Mat temp8Bit;
 	for (int i = 0; i < circleHoughSpace.rows; ++i)
 	{
 		for (int j = 0; j < circleHoughSpace.cols; ++j)
@@ -317,13 +362,11 @@ void detectAndSave( Mat frame )
 	//detect lines
 	cv::Mat xDeriv, yDeriv, grad, arc, output ;//frame_gray
 	sobel(ory, xDeriv, yDeriv, grad, arc);
-	detectEdges(grad, arc, output);
+	detectCircles(grad, arc, output);
+	detectLines(grad, arc, output);
 	//detect lines only in circle with adaptive threshold
 	//in selectedby circles regionns look for line hough spectrum similar to the one of dartboard.bmp
 	//najlepiej zrob thersholiding and XOR
-
-
-
 
 
 	// Blur the image to smooth the noise
