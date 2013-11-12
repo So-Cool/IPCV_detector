@@ -21,6 +21,7 @@ training/dart.vec
 training/dartcascade
 darts_o/*.jpg
 training/smalldart.bmp
+training/bez.png
 
 # LaTeX
 report/*.aux
