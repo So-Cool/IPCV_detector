@@ -147,10 +147,13 @@ void detectLines(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
 	// tho is dynamically adjusted from 0 to max_val based on diagonal
 	int diagonalSize = round(sqrt((double)std::pow((double)(grad.rows), 2) + (double)std::pow((double)(grad.cols),2)));
 	// cout << diagonalSize << "  " << grad.rows << "  " << grad.cols << endl ;
-	diagonalSize *= 2; 
+	diagonalSize *= 2;
 
-	std::vector<std::vector<int> > houghSpace (diagonalSize, std::vector<int>(628, 0) ) ;
-	cv::Mat lineHoughSpace = cv::Mat(diagonalSize, 628, CV_64F, cv::Scalar::all(0)); //628
+	 // diagonalSize = round(diagonalSize/5);
+	 // cout << diagonalSize << endl;
+
+	std::vector<std::vector<int> > houghSpace (round(diagonalSize/5), std::vector<int>(628, 0) ) ;
+	cv::Mat lineHoughSpace = cv::Mat(round(diagonalSize/5), 314+10, CV_64F, cv::Scalar::all(0)); //628
 
 	int ujemne = 0;
 	int dodatnie = 0;
@@ -195,9 +198,9 @@ void detectLines(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
 					// if(round(double(rho/10))<trows && round(double(rho/10))>=0 && round(double(th)/10)<tcols && round(double(th/10))>0)
 					// {
 						// cout << "first" << round(th) << " " << round(rho+diagonalSize/2) << endl;
-						houghSpace[round(rho+diagonalSize/2)][round(th) ] += 1 ;
+						houghSpace[round((rho+diagonalSize/2)/5)-1][round(th) ] += 1 ;
 						// cout << "second" << round(th) << " " << round(rho+diagonalSize/2) << endl;
-						lineHoughSpace.at<double>(round(rho+diagonalSize/2), round(th)) += 1 ;
+						lineHoughSpace.at<double>(round((rho+diagonalSize/2)/5-1), round(th)) += 1 ;
 					// }
 
 				}
@@ -375,7 +378,7 @@ void detectAndSave( Mat frame )
 
 	//detect lines
 	cv::Mat xDeriv, yDeriv, grad, arc, output ;//frame_gray
-	sobel(ory, xDeriv, yDeriv, grad, arc);
+	sobel(frame_gray, xDeriv, yDeriv, grad, arc);//ory
 	detectCircles(grad, arc, output);
 	detectLines(grad, arc, output);
 	//detect lines only in circle with adaptive threshold
