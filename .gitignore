@@ -22,6 +22,7 @@ training/dartcascade
 darts_o/*.jpg
 training/smalldart.bmp
 training/bez.png
+darts_o/02
 
 # LaTeX
 report/*.aux

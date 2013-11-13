@@ -18,7 +18,7 @@
 
 //circle
 #define RMIN 5
-#define RMAX 75
+#define RMAX 150//75
 #define CIRCLETHRESHOLD 210//220
 
 #define HOMOGENITYTHRS 40
@@ -160,7 +160,7 @@ void mexHat(cv::Mat &input, cv::Mat &out)
 	int kernelRadiusX = ( kernel.size[0] - 1 ) / 2;
 	int kernelRadiusY = ( kernel.size[1] - 1 ) / 2;
 
-	// input.convertTo(input, CV_64F);
+	input.convertTo(input, CV_64F);
 
 	cv::Mat paddedInput;
 	cv::copyMakeBorder( input, paddedInput, 
@@ -185,7 +185,7 @@ void mexHat(cv::Mat &input, cv::Mat &out)
 
 					// get the values from the padded image and the kernel
 					// int - int - uchar
-					double imageval = ( double ) paddedInput.at<uchar>( imagex, imagey );
+					double imageval = ( double ) paddedInput.at<double>( imagex, imagey );
 					double kernalval = kernel.at<double>( kernelx, kernely );
 
 					// do the multiplication
@@ -566,10 +566,25 @@ void detectAndSave( Mat frame )
 	if (checkHomogenity(ory)) cout<<"homogeneous" << endl;
 	else cout<<"IN-homogeneous"<<endl;
 
+
+////////////////////////////////////////////////////////////////////////////////
+		cv::Mat temp8Bit;
+	cv::normalize(outcirc, temp8Bit, 0, 255, cv::NORM_MINMAX);
+	temp8Bit.convertTo(outcirc, CV_8U);
+	for (int i = 0; i < outcirc.rows; ++i)
+	{
+		for (int j = 0; j < outcirc.cols; ++j)
+		{
+			if (outcirc.at<uchar>(i,j) < CIRCLETHRESHOLD)//220 pretty good
+			{
+				outcirc.at<uchar>(i,j) = 0  ;
+			}
+		}
+	}
 	mexHat(outcirc, output);
 	imshow("mex", output);
 	waitKey();
-
+////////////////////////////////////////////////////////////////////////////////
 
 	// Blur the image to smooth the noise
 	Mat blurred ;
