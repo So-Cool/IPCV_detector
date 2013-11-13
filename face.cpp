@@ -115,6 +115,95 @@ void sharpen(cv::Mat &input, int size, cv::Mat &out)
 
 }
 
+
+// mexhat
+void mexHat(cv::Mat &input, cv::Mat &out)
+{
+	int size = 17;
+	cv::Mat blurredOutput ;
+	// intialise the output using the input
+	blurredOutput.create(input.size(), CV_64F) ; //input.type());
+
+	//was CV_64FC1
+	cv::Mat kernel = cv::Mat(size, size, CV_64F, cv::Scalar::all(0));
+	int jajko[17][17] = 
+		{
+			{0,0,0,0,0,0,-1,-1,-1,-1,-1,0,0,0,0,0,0 },
+			{0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,0,0,0 },
+			{0,0,-1,-1,-1,-2,-3,-3,-3,-3,-3,-2,-1,-1,-1,0,0 },
+			{0,0,-1,-1,-2,-3,-3,-3,-3,-3,-3,-3,-2,-1,-1,0,0 },
+			{0,-1,-1,-2,-3,-3,-3,-2,-3,-2,-3,-3,-3,-2,-1,-1,0},
+			{0,-1,-2,-3,-3,-3,0,2,4,2,0,-3,-3,-3,-2,-1,0},
+			{-1,-1,-3,-3,-3,0,4,10,12,10,4,0,-3,-3,-3,-1,-1},
+			{-1,-1,-3, -3,-2,2,10,18,21,18,10,2,-2,-3,-3,-1,-1},
+			{-1,-1,-3, -3,-3,4,12,21,24,21,12,4,-3,-3,-3,-1,-1},
+			{-1,-1,-3, -3,-2,2,10,18,21,18,10,2,-2,-3,-3,-1,-1},
+			{-1,-1,-3,-3,-3,0,4,10,12,10,4,0,-3,-3,-3,-1,-1},
+			{0,-1,-2,-3,-3,-3,0,2,4,2,0,-3,-3,-3,-2,-1,0},
+			{0,-1,-1,-2,-3,-3,-3,-2,-3,-2,-3,-3,-3,-2,-1,-1,0},
+			{0,0,-1,-1,-2,-3,-3,-3,-3,-3,-3,-3,-2,-1,-1,0,0},
+			{0,0,-1,-1,-1,-2,-3,-3,-3,-3,-3,-2,-1,-1,-1,0,0},
+			{0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,0,0,0 },
+			{0,0,0,0,0,0,-1,-1,-1,-1,-1,0,0,0,0,0,0 }
+		};
+	// kernel.at<double>(size/2, size/2) = size*size;
+	for (int i = 0; i < size; ++i)
+	{
+		for (int j = 0; j < size; ++j)
+		{
+			kernel.at<double>(i,j) = jajko[i][j];
+		}
+	}
+
+	// we need to create a padded version of the input
+	// or there will be border effects
+	int kernelRadiusX = ( kernel.size[0] - 1 ) / 2;
+	int kernelRadiusY = ( kernel.size[1] - 1 ) / 2;
+
+	// input.convertTo(input, CV_64F);
+
+	cv::Mat paddedInput;
+	cv::copyMakeBorder( input, paddedInput, 
+		kernelRadiusX, kernelRadiusX, kernelRadiusY, kernelRadiusY,
+		cv::BORDER_REPLICATE );
+
+	// now we can do the convoltion
+	for ( int i = 0; i < input.rows; i++ )
+	{	
+		for( int j = 0; j < input.cols; j++ )
+		{
+			double sum = 0.0;
+			for( int m = -kernelRadiusX; m <= kernelRadiusX; m++ )
+			{
+				for( int n = -kernelRadiusY; n <= kernelRadiusY; n++ )
+				{
+					// find the correct indices we are using
+					int imagex = i + kernelRadiusX + m;
+					int imagey = j + kernelRadiusY + n;
+					int kernelx = m + kernelRadiusX;
+					int kernely = n + kernelRadiusY;
+
+					// get the values from the padded image and the kernel
+					// int - int - uchar
+					double imageval = ( double ) paddedInput.at<uchar>( imagex, imagey );
+					double kernalval = kernel.at<double>( kernelx, kernely );
+
+					// do the multiplication
+					sum += imageval * kernalval;							
+				}
+			}
+
+			blurredOutput.at<double>(i, j) = (double)sum;
+		}
+	}
+
+	cv::Mat temp8b ;
+	cv::normalize(blurredOutput, temp8b, 0, 255, cv::NORM_MINMAX);
+	temp8b.convertTo(out, CV_8U);
+
+}
+
+
 //line detect
 void sobel(const cv::Mat& image, cv::Mat& xDeriv, cv::Mat& yDeriv, cv::Mat& grad, cv::Mat& arc)
 {
@@ -318,6 +407,7 @@ void detectCircles(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
 		}
 	}
 
+	out = circleHoughSpace.clone();
 
 	//print haff space fol CIRCLE
 	//take logs
@@ -464,10 +554,10 @@ void detectAndSave( Mat frame )
 
 
 	//detect lines
-	cv::Mat xDeriv, yDeriv, grad_ory, grad_trs, arc_ory, arc_trs, output, out2 ;//frame_gray
+	cv::Mat xDeriv, yDeriv, grad_ory, grad_trs, arc_ory, arc_trs, output, out2, outcirc ;//frame_gray
 	sobel(darken, xDeriv, yDeriv, grad_ory, arc_ory);//ory
 	sobel(sharpened, xDeriv, yDeriv, grad_trs, arc_trs);//ory
-	detectCircles(grad_ory, arc_ory, output);
+	detectCircles(grad_ory, arc_ory, outcirc);
 	detectLines(grad_trs, arc_trs, output);
 	//detect lines only in circle with adaptive threshold
 	//in selectedby circles regionns look for line hough spectrum similar to the one of dartboard.bmp
@@ -475,6 +565,10 @@ void detectAndSave( Mat frame )
 	extractRegion(ory, out2, 50, 50, 20);
 	if (checkHomogenity(ory)) cout<<"homogeneous" << endl;
 	else cout<<"IN-homogeneous"<<endl;
+
+	mexHat(outcirc, output);
+	imshow("mex", output);
+	waitKey();
 
 
 	// Blur the image to smooth the noise
