@@ -13,7 +13,8 @@
 //line
 //5 degrees is 0,087
 #define DTH 9 //delta angle * 100
-#define LINETHRESHOLD 235
+#define LINETHRESHOLD 220 //235
+#define LINEYDIM 314
 
 //circle
 #define RMIN 5
@@ -155,10 +156,10 @@ void detectLines(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
 	std::vector<std::vector<int> > houghSpace (round(diagonalSize/5), std::vector<int>(628, 0) ) ;
 	cv::Mat lineHoughSpace = cv::Mat(round(diagonalSize/5), 314+10, CV_64F, cv::Scalar::all(0)); //628
 
-	int ujemne = 0;
-	int dodatnie = 0;
-	double rem1 = 0;
-	double rem2 = 0;
+	// int ujemne = 0;
+	// int dodatnie = 0;
+	// double rem1 = 0;
+	// double rem2 = 0;
 
 	for(int i = 0; i < grad.rows; ++i)
 	{
@@ -229,16 +230,16 @@ void detectLines(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
 	cv::Mat temp8Bit;
 	cv::normalize(lineHoughSpace, temp8Bit, 0, 255, cv::NORM_MINMAX);
 	temp8Bit.convertTo(lineHoughSpace, CV_8U);
-	// for (int i = 0; i < lineHoughSpace.rows; ++i)
-	// {
-	// 	for (int j = 0; j < lineHoughSpace.cols; ++j)
-	// 	{
-	// 		if (lineHoughSpace.at<uchar>(i,j) < LINETHRESHOLD)//220 pretty good
-	// 		{
-	// 			lineHoughSpace.at<uchar>(i,j) = 0  ;
-	// 		}
-	// 	}
-	// }
+	for (int i = 0; i < lineHoughSpace.rows; ++i)
+	{
+		for (int j = 0; j < lineHoughSpace.cols; ++j)
+		{
+			if (lineHoughSpace.at<uchar>(i,j) < LINETHRESHOLD)//220 pretty good
+			{
+				lineHoughSpace.at<uchar>(i,j) = 0  ;
+			}
+		}
+	}
 	//convert
 	cv::imshow("Hough space", lineHoughSpace) ;
 	waitKey();
@@ -355,6 +356,7 @@ void detectAndSave( Mat frame )
 	sharpen(frame_gray, 3, frame_gray);
 	imshow("sharpen",frame_gray);
 	waitKey();
+	Mat sharpened = frame_gray.clone();
 
 	cv::normalize(frame_gray, frame_gray, 0, 122, cv::NORM_MINMAX);
 
@@ -377,10 +379,11 @@ void detectAndSave( Mat frame )
 
 
 	//detect lines
-	cv::Mat xDeriv, yDeriv, grad, arc, output ;//frame_gray
-	sobel(frame_gray, xDeriv, yDeriv, grad, arc);//ory
-	detectCircles(grad, arc, output);
-	detectLines(grad, arc, output);
+	cv::Mat xDeriv, yDeriv, grad_ory, grad_trs, arc_ory, arc_trs, output ;//frame_gray
+	sobel(ory, xDeriv, yDeriv, grad_ory, arc_ory);//ory
+	sobel(sharpened, xDeriv, yDeriv, grad_trs, arc_trs);//ory
+	detectCircles(grad_ory, arc_ory, output);
+	detectLines(grad_trs, arc_trs, output);
 	//detect lines only in circle with adaptive threshold
 	//in selectedby circles regionns look for line hough spectrum similar to the one of dartboard.bmp
 	//najlepiej zrob thersholiding and XOR
