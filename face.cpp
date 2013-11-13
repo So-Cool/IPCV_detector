@@ -19,7 +19,12 @@
 //circle
 #define RMIN 5
 #define RMAX 75
-#define CIRCLETHRESHOLD 220
+#define CIRCLETHRESHOLD 210//220
+
+#define HOMOGENITYTHRS 40
+#define HOMOGENITYCOND 60  // more than 80% in confidence interval +- 20 in %'s'
+
+#define SHOW 0
 
 using namespace std;
 using namespace cv;
@@ -154,7 +159,9 @@ void detectLines(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
 	 // cout << diagonalSize << endl;
 
 	std::vector<std::vector<int> > houghSpace (round(diagonalSize/5), std::vector<int>(628, 0) ) ;
-	cv::Mat lineHoughSpace = cv::Mat(round(diagonalSize/5), 314+10, CV_64F, cv::Scalar::all(0)); //628
+	// cv::Mat lineHoughSpace = cv::Mat(round(diagonalSize/5), 314+10, CV_64F, cv::Scalar::all(0)); //628
+	cv::Mat lineHoughSpace = cv::Mat(LINEYDIM, 314+10, CV_64F, cv::Scalar::all(0)); //628
+
 
 	// int ujemne = 0;
 	// int dodatnie = 0;
@@ -186,22 +193,32 @@ void detectLines(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
 					// 	lineHoughSpace.at<double>(round(double(rho/10)), round(double(th/10)) ) += 1 ;
 					// }
 
-					if (rho+diagonalSize/2 <0)
-					{
-						ujemne++;
-					} else {
-						dodatnie++;
-					}
-					if (rho<rem1) rem1 = rho;
-					if (rho>rem2) rem2 = rho;
+					// if (rho+diagonalSize/2 <0)
+					// {
+					// 	ujemne++;
+					// } else {
+					// 	dodatnie++;
+					// }
+					// if (rho<rem1) rem1 = rho;
+					// if (rho>rem2) rem2 = rho;
 
 					// create hough space
 					// if(round(double(rho/10))<trows && round(double(rho/10))>=0 && round(double(th)/10)<tcols && round(double(th/10))>0)
 					// {
 						// cout << "first" << round(th) << " " << round(rho+diagonalSize/2) << endl;
+
+						double temporary = rho ;
+						//shift
+						temporary += diagonalSize/2 ;
+						// scale to 0:1
+						temporary /= diagonalSize;
+						// rescale to LINeY
+						temporary *= LINEYDIM;
+
+
 						houghSpace[round((rho+diagonalSize/2)/5)-1][round(th) ] += 1 ;
 						// cout << "second" << round(th) << " " << round(rho+diagonalSize/2) << endl;
-						lineHoughSpace.at<double>(round((rho+diagonalSize/2)/5-1), round(th)) += 1 ;
+						lineHoughSpace.at<double>(round(temporary), round(th)) += 1 ;
 					// }
 
 				}
@@ -213,6 +230,7 @@ void detectLines(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
 	// cout << rem1 << "  " << rem2 << endl;
 
 	cout << "tu" << endl;
+	out = lineHoughSpace.clone();
 
 	//print haff space fol LINE
 	//take logs
@@ -241,8 +259,8 @@ void detectLines(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
 		}
 	}
 	//convert
-	cv::imshow("Hough space", lineHoughSpace) ;
-	waitKey();
+	if(SHOW) cv::imshow("Hough space Line", lineHoughSpace) ;
+	if(SHOW) waitKey();
 }
 
 
@@ -328,8 +346,73 @@ void detectCircles(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
 		}
 	}
 	//convert
-	cv::imshow("Hough space", circleHoughSpace) ;
-	waitKey();
+	if(SHOW) cv::imshow("Hough space Circle", circleHoughSpace) ;
+	imwrite( "output.jpg", circleHoughSpace );
+	if(SHOW) waitKey();
+
+}
+
+//extract square region with given top left corner and side length
+void extractRegion(const Mat& input, Mat& output, int x, int y, int a)
+{
+	output = Mat(a, a, CV_64F, cv::Scalar::all(0)).clone();
+	Mat temp ;
+	input.convertTo(temp, CV_64F);
+
+	for (int i = y; i < y+a; ++i)
+	{
+		for (int j = x; j < x+a; ++j)
+		{
+			output.at<double>(i-y, j-x) = temp.at<double>(i, j);
+		}
+	}
+
+	//preview
+	cv::Mat temp8Bit;
+	cv::normalize(output, temp8Bit, 0, 255, cv::NORM_MINMAX);
+	temp8Bit.convertTo(output, CV_8U);
+	if(SHOW) cv::imshow("square extraction", output) ;
+	if(SHOW) waitKey();
+
+
+}
+
+bool checkHomogenity(const Mat& input)
+{
+ int c = 0;
+ double d = 0;
+ int e =0;
+ Mat temp;
+ input.convertTo(temp, CV_64F);
+
+ for (int i = 0; i < input.rows; ++i)
+ {
+ 	for (int j = 0; j < input.cols; ++j)
+ 	{
+ 		// cout << c << "   " << temp.at<double>(i,j) << endl;
+ 		++c;
+ 		d +=  temp.at<double>(i,j);
+ 	}
+ }
+  cout << "d: " << d << " c: " << c << " e: " << e << endl;
+
+
+ d /= c;
+
+ for (int i = 0; i < input.rows; ++i)
+ {
+ 	for (int j = 0; j < input.cols; ++j)
+ 	{
+ 		if (d - HOMOGENITYTHRS < temp.at<double>(i,j) && d + HOMOGENITYTHRS > temp.at<double>(i,j))
+ 		{
+ 			++e;
+ 		}
+ 	}
+ }
+
+ cout << "d: " << d << " c: " << c << " e: " << e << endl;
+ if (double((double(e)/c)*100) >  HOMOGENITYCOND) return true;
+ else return false;
 
 }
 
@@ -344,21 +427,23 @@ void detectAndSave( Mat frame )
 	equalizeHist( frame_gray, frame_gray );
 
 	// medianBlur(frame_gray, frame_gray, 3) ;
-	imshow("gray",frame_gray);
-	waitKey();
+	if(SHOW) imshow("gray",frame_gray);
+	if(SHOW) waitKey();
 
 	Mat ory = frame_gray.clone();
 
 	GaussianBlur(frame_gray, frame_gray, Size(3, 3), 1) ; //0.7 was OK
-	imshow("gaus blurred",frame_gray);
-	waitKey();
+	if(SHOW) imshow("gaus blurred",frame_gray);
+	if(SHOW) waitKey();
 
 	sharpen(frame_gray, 3, frame_gray);
 	imshow("sharpen",frame_gray);
-	waitKey();
+	if(SHOW) waitKey();
 	Mat sharpened = frame_gray.clone();
 
 	cv::normalize(frame_gray, frame_gray, 0, 122, cv::NORM_MINMAX);
+
+	Mat darken = frame_gray.clone();
 
 
 	// threshold to produce solid black(remove shades)
@@ -374,19 +459,22 @@ void detectAndSave( Mat frame )
 
 		}
 	}
-	imshow("prev",frame_gray);
-	waitKey();
+	if(SHOW) imshow("prev",frame_gray);
+	if(SHOW) waitKey();
 
 
 	//detect lines
-	cv::Mat xDeriv, yDeriv, grad_ory, grad_trs, arc_ory, arc_trs, output ;//frame_gray
-	sobel(ory, xDeriv, yDeriv, grad_ory, arc_ory);//ory
+	cv::Mat xDeriv, yDeriv, grad_ory, grad_trs, arc_ory, arc_trs, output, out2 ;//frame_gray
+	sobel(darken, xDeriv, yDeriv, grad_ory, arc_ory);//ory
 	sobel(sharpened, xDeriv, yDeriv, grad_trs, arc_trs);//ory
 	detectCircles(grad_ory, arc_ory, output);
 	detectLines(grad_trs, arc_trs, output);
 	//detect lines only in circle with adaptive threshold
 	//in selectedby circles regionns look for line hough spectrum similar to the one of dartboard.bmp
 	//najlepiej zrob thersholiding and XOR
+	extractRegion(ory, out2, 50, 50, 20);
+	if (checkHomogenity(ory)) cout<<"homogeneous" << endl;
+	else cout<<"IN-homogeneous"<<endl;
 
 
 	// Blur the image to smooth the noise
@@ -400,10 +488,15 @@ void detectAndSave( Mat frame )
 
 	for( int i = 0; i < faces.size(); i++ )
 	{
-		rectangle(frame, Point(faces[i].x, faces[i].y), Point(faces[i].x + faces[i].width, faces[i].y + faces[i].height), Scalar( 0, 255, 0 ), 2);
+		Mat tmp;
+		extractRegion(ory, tmp, faces[i].x, faces[i].y, faces[i].width);
+		if(!checkHomogenity(tmp))
+			rectangle(frame, Point(faces[i].x, faces[i].y), Point(faces[i].x + faces[i].width, faces[i].y + faces[i].height), Scalar( 0, 255, 0 ), 2);
 	}
 
 	//-- Save what you got
-	imwrite( "output.jpg", frame );
+	if(SHOW) imshow("output",frame);
+	if(SHOW) waitKey();
+	// imwrite( "output.jpg", frame );
 
 }
