@@ -53,30 +53,36 @@ void detectAndSave( Mat frame )
 
 	Mat original = frame_gray.clone();
 
-	// Adoptive thresholding
-	Mat thresholded(frame_gray.rows, frame_gray.cols, CV_8U, cv::Scalar::all(0));
-	nLvlTrsh(frame_gray, thresholded);
-	imshow("Thrsh", thresholded);
-	waitKey();
+	// // Adoptive thresholding
+	// Mat thresholded(frame_gray.rows, frame_gray.cols, CV_8U, cv::Scalar::all(0));
+	// nLvlTrsh(frame_gray, thresholded);
+	// imshow("Thrsh", thresholded);
+	// waitKey();
 
-
+	// delete dark colors (preparation for histogram stretching)
+	Mat bright(frame_gray.rows, frame_gray.cols, CV_8U, cv::Scalar::all(0));
 	for (int i = 0; i < frame_gray.rows; ++i)
 	{
 		for (int j = 0; j < frame_gray.cols; ++j)
 		{
 			if (frame_gray.at<uchar>(i,j) < 125)//220 pretty good
 			{
-				frame_gray.at<uchar>(i,j) = 125  ;
+				bright.at<uchar>(i,j) = 125  ;
+			}
+			else
+			{
+				bright.at<uchar>(i,j) = frame_gray.at<uchar>(i,j) ;
 			}
 		}
 	}
 
 	// Darken image
+	// Stretch the histogram from 125-255 to 0-255
+	// As effect we get overall darken image
 	Mat darken;
-	cv::normalize(frame_gray, darken, 0, 255, cv::NORM_MINMAX);
+	cv::normalize(bright, darken, 0, 255, cv::NORM_MINMAX);
 	imshow("Dark", darken);
 	waitKey();
-
 
 	// detect circles and print them
 	cv::Mat xDeriveCRC, yDeriveCRC, gradCRC, arcCRC, outCRC;
