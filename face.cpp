@@ -42,8 +42,10 @@ int main( int argc, const char** argv )
 /** @function detectAndSave */
 void detectAndSave( Mat frame )
 {
-	std::vector<Rect> faces;
+	std::vector<Rect> faces, faces1, faces2;
 	Mat frame_gray;
+	double average = 0;
+	double  count = 0;
 
 	// for temporary storage of Mat construct
 	cv::Mat temp8Bit;
@@ -53,18 +55,15 @@ void detectAndSave( Mat frame )
 
 	Mat original = frame_gray.clone();
 
-	// // Adoptive thresholding
-	// Mat thresholded(frame_gray.rows, frame_gray.cols, CV_8U, cv::Scalar::all(0));
-	// nLvlTrsh(frame_gray, thresholded);
-	// imshow("Thrsh", thresholded);
-	// waitKey();
-
 	// delete dark colors (preparation for histogram stretching)
 	Mat bright(frame_gray.rows, frame_gray.cols, CV_8U, cv::Scalar::all(0));
+	Mat dark(frame_gray.rows, frame_gray.cols, CV_8U, cv::Scalar::all(0));
 	for (int i = 0; i < frame_gray.rows; ++i)
 	{
 		for (int j = 0; j < frame_gray.cols; ++j)
 		{
+			average += frame_gray.at<uchar>(i,j);
+			++count;
 			if (frame_gray.at<uchar>(i,j) < 125)//220 pretty good
 			{
 				bright.at<uchar>(i,j) = 125  ;
@@ -73,8 +72,19 @@ void detectAndSave( Mat frame )
 			{
 				bright.at<uchar>(i,j) = frame_gray.at<uchar>(i,j) ;
 			}
+
+
+			if (frame_gray.at<uchar>(i,j) > 125)//220 pretty good
+			{
+				dark.at<uchar>(i,j) = 125  ;
+			}
+			else
+			{
+				dark.at<uchar>(i,j) = frame_gray.at<uchar>(i,j) ;
+			}
 		}
 	}
+	cout<< "average gray level: " << average/count << endl;
 
 	// Darken image
 	// Stretch the histogram from 125-255 to 0-255
@@ -84,14 +94,17 @@ void detectAndSave( Mat frame )
 	imshow("Dark", darken);
 	waitKey();
 
+	Mat brighten;
+	cv::normalize(dark, brighten, 0, 255, cv::NORM_MINMAX);
+	imshow("Bright", brighten);
+	waitKey();
+
 	// detect circles and print them
 	cv::Mat xDeriveCRC, yDeriveCRC, gradCRC, arcCRC, outCRC;
 	sobel(darken, xDeriveCRC, yDeriveCRC, gradCRC, arcCRC); // original
 	std::vector<std::vector<std::vector<int> > > roundShapes = detectCircles(gradCRC, arcCRC, outCRC);
-////////////////////////////////////////////////////////////////////////////////
-	// cv::Mat temp8Bit;
-	// cv::normalize(outCRC, temp8Bit, 0, 255, cv::NORM_MINMAX);
-	// temp8Bit.convertTo(outcirc, CV_8U);
+
+	// threshold Hough space
 	for (int i = 0; i < outCRC.rows; ++i)
 	{
 		for (int j = 0; j < outCRC.cols; ++j)
@@ -102,33 +115,59 @@ void detectAndSave( Mat frame )
 			}
 		}
 	}
+
+	// Apply Mexican Hat filter
 	mexHat(outCRC, temp8Bit);
 	imshow("CRC & MexHat", temp8Bit);
 	waitKey();
+
+
+	// Blur the image to smooth the noise
+	Mat medianB, gaussianB5, gaussianB3, gaussianB1;
+	// medianBlur(frame_gray, frame_gray, 3) ;
+	GaussianBlur(darken, gaussianB5, Size(5, 5), 0.7) ; // 1.2 //0.7 was OK
+	GaussianBlur(original, gaussianB3, Size(5, 5), 1.2) ; // 1.2 //0.7 was OK // for wall only
+	sharpen(gaussianB5, 3, gaussianB5);
+	sharpen(gaussianB3, 3, gaussianB3);
+	gaussianB1 = original.clone();
+
+	// imshow("gausblur", gaussianB5);
+	// waitKey();
+
+
+	//-- Detect faces
+	// logo_cascade.detectMultiScale( gaussianB5, faces, 1.1, 1, 0|CV_HAAR_SCALE_IMAGE, Size(50, 50), Size(500,500) ); //blurred
+	// logo_cascade.detectMultiScale( gaussianB3, faces, 1.1, 1, 0|CV_HAAR_SCALE_IMAGE, Size(50, 50), Size(500,500) ); //blurred
+	logo_cascade.detectMultiScale( gaussianB1, faces, 1.1, 1, 0|CV_HAAR_SCALE_IMAGE, Size(50, 50), Size(500,500) ); //blurred
+	std::cout << faces.size() << std::endl;
+
+	for( int i = 0; i < faces.size(); i++ )
+	{
+		// Mat tmp;
+		// extractRegion(original, tmp, faces[i].x, faces[i].y, faces[i].width);
+		// if(!checkHomogenity(tmp))
+		rectangle(frame, Point(faces[i].x, faces[i].y), Point(faces[i].x + faces[i].width, faces[i].y + faces[i].height), Scalar( 0, 255, 0 ), 2);
+	}
+
+	//-- Save what you got
+	imshow("output",frame);
+	waitKey();
+	imwrite( "output.jpg", frame );
+
+
+
+
+
 ////////////////////////////////////////////////////////////////////////////////
 
 
 
 
-
-	// medianBlur(frame_gray, frame_gray, 3) ;
-
-	// show original image
-	// if(SHOW) imshow("gray",frame_gray);
-	// if(SHOW) waitKey();
-
-	// GaussianBlur(frame_gray, frame_gray, Size(3, 3), 1) ; //0.7 was OK
-	// if(SHOW) imshow("gaus blurred",frame_gray);
-	// if(SHOW) waitKey();
-
-	// sharpen(frame_gray, 3, frame_gray);
-	// if(SHOW) imshow("sharpen",frame_gray);
-	// if(SHOW) waitKey();
-	// Mat sharpened = frame_gray.clone();
-
-	// cv::normalize(frame_gray, frame_gray, 0, 122, cv::NORM_MINMAX);
-
-	// Mat darken = frame_gray.clone();
+	// // Adoptive thresholding
+	// Mat thresholded(frame_gray.rows, frame_gray.cols, CV_8U, cv::Scalar::all(0));
+	// nLvlTrsh(frame_gray, thresholded);
+	// imshow("Thrsh", thresholded);
+	// waitKey();
 
 
 	// threshold to produce solid black(remove shades)
@@ -180,27 +219,5 @@ void detectAndSave( Mat frame )
 	// imshow("mex", output);
 	// waitKey();
 ////////////////////////////////////////////////////////////////////////////////
-
-	// Blur the image to smooth the noise
-	// Mat blurred ;
-	// GaussianBlur(frame_gray, blurred, Size(3, 3), 1.2) ;
-	// medianBlur(blurred, blurred, 3) ;
-
-	//-- Detect faces
-	logo_cascade.detectMultiScale( original, faces, 1.1, 1, 0|CV_HAAR_SCALE_IMAGE, Size(50, 50), Size(500,500) ); //blurred
-	std::cout << faces.size() << std::endl;
-
-	for( int i = 0; i < faces.size(); i++ )
-	{
-		// Mat tmp;
-		// extractRegion(original, tmp, faces[i].x, faces[i].y, faces[i].width);
-		// if(!checkHomogenity(tmp))
-		rectangle(frame, Point(faces[i].x, faces[i].y), Point(faces[i].x + faces[i].width, faces[i].y + faces[i].height), Scalar( 0, 255, 0 ), 2);
-	}
-
-	//-- Save what you got
-	if(SHOW) imshow("output",frame);
-	if(SHOW) waitKey();
-	imwrite( "output.jpg", frame );
 
 }
