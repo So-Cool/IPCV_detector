@@ -181,7 +181,7 @@ void detectAndSave( Mat frame )
 	// medianBlur(blurred, blurred, 3) ;
 
 	//-- Detect faces
-	logo_cascade.detectMultiScale( frame_gray, faces, 1.1, 1, 0|CV_HAAR_SCALE_IMAGE, Size(50, 50), Size(500,500) ); //blurred
+	logo_cascade.detectMultiScale( original, faces, 1.1, 1, 0|CV_HAAR_SCALE_IMAGE, Size(50, 50), Size(500,500) ); //blurred
 	std::cout << faces.size() << std::endl;
 
 	for( int i = 0; i < faces.size(); i++ )
@@ -189,7 +189,7 @@ void detectAndSave( Mat frame )
 		// Mat tmp;
 		// extractRegion(original, tmp, faces[i].x, faces[i].y, faces[i].width);
 		// if(!checkHomogenity(tmp))
-		// rectangle(frame, Point(faces[i].x, faces[i].y), Point(faces[i].x + faces[i].width, faces[i].y + faces[i].height), Scalar( 0, 255, 0 ), 2); // frame
+		rectangle(frame, Point(faces[i].x, faces[i].y), Point(faces[i].x + faces[i].width, faces[i].y + faces[i].height), Scalar( 0, 255, 0 ), 2);
 	}
 
 	//-- Save what you got
