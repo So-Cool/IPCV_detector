@@ -14,8 +14,8 @@
 
 //circle
 #define RMIN 5
-#define RMAX 150//75
-#define CIRCLETHRESHOLD 210//220
+#define RMAX 400//300//150//75
+#define CIRCLETHRESHOLD 220//220//220
 
 #define HOMOGENITYTHRS 40
 #define HOMOGENITYCOND 60  // more than 80% in confidence interval +- 20 in %'s'
@@ -36,5 +36,7 @@ std::vector<std::vector<std::vector<int> > > detectCircles(const cv::Mat& grad, 
 void extractRegion(const cv::Mat& input, cv::Mat& output, int x, int y, int a);
 
 bool checkHomogenity(const cv::Mat& input);
+
+void nLvlTrsh( const cv::Mat& input, cv::Mat& output );
 
 #endif

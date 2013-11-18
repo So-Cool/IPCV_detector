@@ -465,3 +465,156 @@ bool checkHomogenity(const Mat& input)
  else return false;
 
 }
+
+
+// threshold the image with a few levels
+void nLvlTrsh( const Mat& input, Mat& output )
+{
+    // threshold to produce solid black(remove shades)
+    for(int i = 0; i < input.rows; ++i)
+    {
+        for (int j = 0; j < input.cols; ++j)
+        {
+            uchar tr = input.at<uchar>(i, j);
+            // if(tr < 35)
+            // {
+            //         input.at<uchar>(i, j) = 15 ;//0
+            // }
+            // else if(tr<70)
+            // {
+            //         input.at<uchar>(i, j) = 45;//40
+            // }
+            // else if (tr<105)
+            // {
+            //         input.at<uchar>(i, j) = 75;//80
+            // }
+            // else if (tr<140)
+            // {
+            //         input.at<uchar>(i, j) = 105;//120
+            // }
+///////////////////////////////////////////////////////////////////////////////
+            if(tr < 100)
+            {
+                    output.at<uchar>(i, j) = 0;
+            }
+            // else if(tr<75)
+            // {
+            //         output.at<uchar>(i, j) = 60;
+            // }
+            // else if (tr<100)
+            // {
+            //         output.at<uchar>(i, j) = 80;
+            // }
+            else if (tr<125)
+            {
+                    output.at<uchar>(i, j) = 100;
+            }
+            else if (tr<150)
+            {
+                    output.at<uchar>(i, j) = 120;
+            }
+            // else if (tr<175)
+            // {
+            //         output.at<uchar>(i, j) = 140;
+            // }
+            // else if (tr<200)
+            // {
+            //         output.at<uchar>(i, j) = 160;
+            // }
+            else
+            {
+            	output.at<uchar>(i,j) = 130;
+            }
+
+///////////////////////////////////////////////////////////////////////////////
+            //BEST EVA
+            // if(tr < 50)
+            // {
+            //         input.at<uchar>(i, j) = 10 ;//0
+            // }
+            // else if(tr<100)
+            // {
+            //         input.at<uchar>(i, j) = 50;//40
+            // }
+            // else if (tr<150)
+            // {
+            //         input.at<uchar>(i, j) = 90;//80
+            // }
+            // else if (tr<200)
+            // {
+            //         input.at<uchar>(i, j) = 130;//120
+            // }
+            // else if (tr<255)
+            // {
+            //         input.at<uchar>(i, j) = 190; //180
+            // }
+////////////////////////////////////////////////////////////////////////////////
+
+
+//                 if (tr < 25)
+//                 {
+//                         input.at<uchar>(i, j) = 10 ; //10 ;
+//                 }
+//                 else if (tr < 50)
+//                 {
+//                         input.at<uchar>(i, j) = 35 ; //30 ;
+//                 }
+//                 else if (tr < 75)
+//                 {
+//                         input.at<uchar>(i, j) = 60 ; //50 ;
+//                 }
+//                 else if (tr < 100)
+//                 {
+//                         input.at<uchar>(i, j) =  85; //70 ;
+//                 }
+//                 else if (tr < 125)
+//                 {
+//                         input.at<uchar>(i, j) =  110; //90 ;
+//                 }
+//                 else if (tr < 150)
+//                 {
+//                         input.at<uchar>(i, j) =  135; //110 ;
+//                 }
+//                 else if (tr < 175)
+//                 {
+//                         input.at<uchar>(i, j) =  160; //130 ;
+//                 }
+//                 else if (tr < 200)
+//                 {
+//                         input.at<uchar>(i, j) =  185; //150 ;
+//                 }
+//                 else if (tr < 225)
+//                 {
+//                         input.at<uchar>(i, j) =  210; //160 ;
+//                 }
+//                 else if (tr < 255)
+//                 {
+//                         input.at<uchar>(i, j) =  240; //180 ;
+//                 }
+            // else if (tr < 210)
+            // {
+            //         input.at<uchar>(i, j) =  195; //200 ;
+            // }
+            // else if (tr < 230)
+            // {
+            //         input.at<uchar>(i, j) =  215; //220 ;
+            // }
+            // else if (tr < 250)
+            // {
+            //         input.at<uchar>(i, j) =  235; //240 ;
+            // }
+            // else if (tr < 255)
+            // {
+            //         input.at<uchar>(i, j) =  250; //255 ;
+            // }
+            // else
+            // {
+            //         input.at<uchar>(i, j) = 0 ;
+            // }
+        }
+    }
+}
+
+
+
+
