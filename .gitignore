@@ -23,6 +23,7 @@ darts_o/*.jpg
 training/smalldart.bmp
 training/bez.png
 darts_o/02
+training/beztarczy.png
 
 # LaTeX
 report/*.aux

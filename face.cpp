@@ -48,11 +48,13 @@ void detectAndSave( Mat frame )
 	cvtColor( frame, frame_gray, CV_BGR2GRAY );
 	equalizeHist( frame_gray, frame_gray );
 
+	Mat original = frame_gray.clone();
+
 	// medianBlur(frame_gray, frame_gray, 3) ;
+
+	// show original image
 	if(SHOW) imshow("gray",frame_gray);
 	if(SHOW) waitKey();
-
-	Mat ory = frame_gray.clone();
 
 	GaussianBlur(frame_gray, frame_gray, Size(3, 3), 1) ; //0.7 was OK
 	if(SHOW) imshow("gaus blurred",frame_gray);
@@ -87,15 +89,15 @@ void detectAndSave( Mat frame )
 
 	//detect lines
 	cv::Mat xDeriv, yDeriv, grad_ory, grad_trs, arc_ory, arc_trs, output, out2, outcirc ;//frame_gray
-	sobel(darken, xDeriv, yDeriv, grad_ory, arc_ory);//ory
-	sobel(sharpened, xDeriv, yDeriv, grad_trs, arc_trs);//ory
+	sobel(darken, xDeriv, yDeriv, grad_ory, arc_ory);//original
+	sobel(sharpened, xDeriv, yDeriv, grad_trs, arc_trs);//original
 	detectCircles(grad_ory, arc_ory, outcirc);
 	detectLines(grad_trs, arc_trs, output);
 	//detect lines only in circle with adaptive threshold
 	//in selectedby circles regionns look for line hough spectrum similar to the one of dartboard.bmp
 	//najlepiej zrob thersholiding and XOR
-	extractRegion(ory, out2, 50, 50, 20);
-	if (checkHomogenity(ory)) cout<<"homogeneous" << endl;
+	extractRegion(original, out2, 50, 50, 20);
+	if (checkHomogenity(original)) cout<<"homogeneous" << endl;
 	else cout<<"IN-homogeneous"<<endl;
 
 
@@ -130,7 +132,7 @@ void detectAndSave( Mat frame )
 	for( int i = 0; i < faces.size(); i++ )
 	{
 		Mat tmp;
-		extractRegion(ory, tmp, faces[i].x, faces[i].y, faces[i].width);
+		extractRegion(original, tmp, faces[i].x, faces[i].y, faces[i].width);
 		if(!checkHomogenity(tmp))
 			rectangle(frame, Point(faces[i].x, faces[i].y), Point(faces[i].x + faces[i].width, faces[i].y + faces[i].height), Scalar( 0, 255, 0 ), 2);
 	}

@@ -28,9 +28,9 @@ void mexHat(cv::Mat &input, cv::Mat &out);
 //line detect
 void sobel(const cv::Mat& image, cv::Mat& xDeriv, cv::Mat& yDeriv, cv::Mat& grad, cv::Mat& arc);
 
-void detectLines(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out);
+std::vector<std::vector<int> > detectLines(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out);
 
-void detectCircles(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out);
+std::vector<std::vector<std::vector<int> > > detectCircles(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out);
 
 //extract square region with given top left corner and side length
 void extractRegion(const cv::Mat& input, cv::Mat& output, int x, int y, int a);

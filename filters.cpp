@@ -178,8 +178,10 @@ void sobel(const cv::Mat& image, cv::Mat& xDeriv, cv::Mat& yDeriv, cv::Mat& grad
 }
 
 
-
-void detectLines(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
+// detect lines and threshold + log() to display
+// return vector with hough space
+// void
+std::vector<std::vector<int> > detectLines(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
 {
 	// cv::Mat lineHoughSpace = cv::Mat(grad.rows, grad.cols, CV_64F, cv::Scalar::all(0));
 
@@ -263,8 +265,10 @@ void detectLines(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
 	// cout << "ujemne: " << ujemne << " " << dodatnie << endl;
 	// cout << rem1 << "  " << rem2 << endl;
 
-	cout << "tu" << endl;
-	out = lineHoughSpace.clone();
+	// cout << "tu" << endl;
+	cv::Mat temp8b ;
+	cv::normalize(lineHoughSpace, temp8b, 0, 255, cv::NORM_MINMAX);
+	temp8b.convertTo(out, CV_8U);
 
 	//print haff space fol LINE
 	//take logs
@@ -295,14 +299,18 @@ void detectLines(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
 	//convert
 	if(SHOW) cv::imshow("Hough space Line", lineHoughSpace) ;
 	if(SHOW) waitKey();
+
+	return houghSpace;
 }
 
 
-
-void detectCircles(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
+// Detect circles with Hough transform
+// void
+std::vector<std::vector<std::vector<int> > > detectCircles(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
 {
 	// cv::vector<cv::Vec3d> circles ; //x,y,r
 	// std::vector<std::vector<std::vector<int> > > houghSpace (HOUGHY, std::vector<std::vector<int> > (HOUGHX, std::vector<int>(RMAX-RMIN, 0) ) ) ;
+	std::vector<std::vector<std::vector<int> > > houghSpace (grad.rows, std::vector<std::vector<int> > (grad.cols, std::vector<int>(RMAX-RMIN, 0) ) ) ;
 	cv::Mat circleHoughSpace = cv::Mat(grad.rows, grad.cols, CV_64F, cv::Scalar::all(0));
 	// threshold the gradient image after normalization
 	// cv::Mat gradNorm(grad.rows, grad.cols, CV_64F) ;
@@ -330,21 +338,25 @@ void detectCircles(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
 					{
 						circleHoughSpace.at<double>(round(y1), round(x1) ) += 1 ;
 						// houghSpace[y1*HOUGHY/trows][x1*HOUGHX/tcols][r-RMIN] += 1 ;
+						houghSpace[round(y1)][round(x1)][r-RMIN] += 1 ;
 					}
 					if ( round(y1)<trows && round(y1)>0 && round(x2)>0 && round(x2)<tcols )
 					{
 						circleHoughSpace.at<double>( round(y1), round(x2)  ) += 1 ;
 						// houghSpace[y1*HOUGHY/trows][x2*HOUGHX/tcols][r-RMIN] += 1 ;
+						houghSpace[round(y1)][round(x2)][r-RMIN] += 1 ;
 					}
 					if ( round(y2)<trows && round(y2)>0 && round(x1)>0 && round(x1)<tcols )
 					{
 						circleHoughSpace.at<double>(  round(y2), round(x1)  ) += 1 ;
 						// houghSpace[y2*HOUGHY/trows][x1*HOUGHX/tcols][r-RMIN] += 1 ;
+						houghSpace[round(y2)][round(x1)][r-RMIN] += 1 ;
 					}
 					if ( round(y2)<trows && round(y2)>0 && round(x2)>0 && round(x2)<tcols )
 					{
 						circleHoughSpace.at<double>(  round(y2), round(x2)  ) += 1 ;
 						// houghSpace[y2*HOUGHY/trows][x2*HOUGHX/tcols][r-RMIN] += 1 ;
+						houghSpace[round(y2)][round(x2)][r-RMIN] += 1 ;
 
 					}
 				}
@@ -352,7 +364,9 @@ void detectCircles(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
 		}
 	}
 
-	out = circleHoughSpace.clone();
+	cv::Mat temp8b ;
+	cv::normalize(circleHoughSpace, temp8b, 0, 255, cv::NORM_MINMAX);
+	temp8b.convertTo(out, CV_8U);
 
 	//print haff space fol CIRCLE
 	//take logs
@@ -382,9 +396,10 @@ void detectCircles(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
 	}
 	//convert
 	if(SHOW) cv::imshow("Hough space Circle", circleHoughSpace) ;
-	imwrite( "output.jpg", circleHoughSpace );
+	// imwrite( "output.jpg", circleHoughSpace );
 	if(SHOW) waitKey();
 
+	return houghSpace;
 }
 
 //extract square region with given top left corner and side length

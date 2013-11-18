@@ -14,3 +14,6 @@ filters.o: filters.cpp
 
 run:
 	./face.a
+
+clean:
+	rm -f *.o
