@@ -174,7 +174,8 @@ void detectAndSave( Mat frame )
 				{
 
 					// if list empty put first element
-					if (brightSpots.size() == 0 && radmax*2<imageCols && radmax*2<imageRows)
+					if (brightSpots.size() == 0 && radmax*2<imageCols && radmax*2<imageRows
+						&& i+radmax<imageRows && i-radmax>0 &&  j+radmax<imageCols && j-radmax>0)
 					{
 						cout << "dodaje bo empty: " << i << " " << j << vmax << endl;
 						brightSpots.push_back(cv::Point(i, j));
@@ -192,7 +193,9 @@ void detectAndSave( Mat frame )
 							if  ( abs(brightSpots[l].x - i ) < PROXIMITY &&
 									abs( brightSpots[l].y - j ) < PROXIMITY)
 							{
-								if( roundShapes[i][j][radmax] > roundShapes[brightSpots[l].x][brightSpots[l].y][brightR[l]] && radmax*2<imageCols && radmax*2<imageRows )
+								if( roundShapes[i][j][radmax] > roundShapes[brightSpots[l].x][brightSpots[l].y][brightR[l]]
+									&& radmax*2<imageCols && radmax*2<imageRows
+									&& i+radmax<imageRows && i-radmax>0 &&  j+radmax<imageCols && j-radmax>0 )
 								{
 
 									// cout << abs(brightSpots[l].x - i ) << "  " << abs(brightSpots[l].y - j ) << endl;
@@ -224,7 +227,8 @@ void detectAndSave( Mat frame )
 						}
 
 						// add new if not fount
-						if (notfound && radmax*2<imageCols && radmax*2<imageRows)
+						if (notfound && radmax*2<imageCols && radmax*2<imageRows
+							&& i+radmax<imageRows && i-radmax>0 &&  j+radmax<imageCols && j-radmax>0)
 						{
 							cout << "dodaje: " << i << " " << j << endl;
 							brightSpots.push_back(cv::Point(i, j));

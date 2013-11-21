@@ -14,8 +14,8 @@
 
 //circle
 #define RMIN 5
-#define RMAX 200//400//300//150//75
-#define CIRCLETHRESHOLD 220//220//220
+#define RMAX 175//125//200//400//300//150//75
+#define CIRCLETHRESHOLD 220//220
 
 #define HOMOGENITYTHRS 40
 #define HOMOGENITYCOND 60  // more than 80% in confidence interval +- 20 in %'s'
