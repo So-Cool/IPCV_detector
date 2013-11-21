@@ -13,7 +13,7 @@
 #define LINEYDIM 314
 
 //circle
-#define RMIN 5
+#define RMIN 20//5
 #define RMAX 400//300//150//75
 #define CIRCLETHRESHOLD 220//220//220
 

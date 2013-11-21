@@ -121,6 +121,67 @@ void detectAndSave( Mat frame )
 	imshow("CRC & MexHat", temp8Bit);
 	waitKey();
 
+	//choose the coordinates of brightest points
+	int rowsmax = 0;
+	int colsmax = 0;
+	int radmax = 0;
+	int vmax = 0;
+	int tempmax = 0;
+	std::vector<cv::Point> brightSpots;
+	for (int i = 0; i < temp8Bit.rows; ++i)
+	{
+		for (int j = 0; j < temp8Bit.cols; ++j)
+		{
+			tempmax = temp8Bit.at<uchar>(i,j);
+			if (tempmax > vmax)
+			{
+				vmax = tempmax;
+				rowsmax = i;
+				colsmax = j;
+			}
+		}
+	}
+	for (int i = 0; i < temp8Bit.rows; ++i)
+	{
+		for (int j = 0; j < temp8Bit.cols; ++j)
+		{
+			tempmax = temp8Bit.at<uchar>(i,j);
+			if (tempmax == vmax)
+			{
+				// push coordinates to vector
+				brightSpots.push_back(cv::Point(i, j));
+			}
+		}
+	}
+
+	typedef std::vector<cv::Point>::iterator PointIter;
+	tempmax = 0;
+	for(PointIter it = brightSpots.begin(); it != brightSpots.end(); ++it)
+	{
+		cv::Point p = *it;
+		for (int r = RMIN; r < RMAX; ++r)
+		{
+			if (roundShapes[p.x][p.y][r] > tempmax)
+			{
+				tempmax = roundShapes[p.x][p.y][r];
+				rowsmax = p.x;
+				colsmax = p.y;
+				radmax = r;
+			}
+		}
+	}
+
+		// Parameters for circle
+	    cv::Scalar redColour(255, 0, 0);
+	    int radius = radmax;
+	    // providing a negative number will create a filled circle
+	    int thickness = 2;
+	    // 8 connected line
+	    // ( also there is a 4 connected line and CVAA which is an anti aliased line )
+	    int linetype = 8; 
+		cv::Point center( colsmax, rowsmax );
+		cv::circle ( frame , center , radius , redColour , thickness , linetype );
+
 
 	// Blur the image to smooth the noise
 	Mat medianB, gaussianB5, gaussianB3, gaussianB1;
@@ -138,16 +199,16 @@ void detectAndSave( Mat frame )
 	//-- Detect faces
 	// logo_cascade.detectMultiScale( gaussianB5, faces, 1.1, 1, 0|CV_HAAR_SCALE_IMAGE, Size(50, 50), Size(500,500) ); //blurred
 	// logo_cascade.detectMultiScale( gaussianB3, faces, 1.1, 1, 0|CV_HAAR_SCALE_IMAGE, Size(50, 50), Size(500,500) ); //blurred
-	logo_cascade.detectMultiScale( gaussianB1, faces, 1.1, 1, 0|CV_HAAR_SCALE_IMAGE, Size(50, 50), Size(500,500) ); //blurred
-	std::cout << faces.size() << std::endl;
+	// logo_cascade.detectMultiScale( gaussianB1, faces, 1.1, 1, 0|CV_HAAR_SCALE_IMAGE, Size(50, 50), Size(500,500) ); //blurred
+	// std::cout << faces.size() << std::endl;
 
-	for( int i = 0; i < faces.size(); i++ )
-	{
-		// Mat tmp;
-		// extractRegion(original, tmp, faces[i].x, faces[i].y, faces[i].width);
-		// if(!checkHomogenity(tmp))
-		rectangle(frame, Point(faces[i].x, faces[i].y), Point(faces[i].x + faces[i].width, faces[i].y + faces[i].height), Scalar( 0, 255, 0 ), 2);
-	}
+	// for( int i = 0; i < faces.size(); i++ )
+	// {
+	// 	// Mat tmp;
+	// 	// extractRegion(original, tmp, faces[i].x, faces[i].y, faces[i].width);
+	// 	// if(!checkHomogenity(tmp))
+	// 	rectangle(frame, Point(faces[i].x, faces[i].y), Point(faces[i].x + faces[i].width, faces[i].y + faces[i].height), Scalar( 0, 255, 0 ), 2);
+	// }
 
 	//-- Save what you got
 	imshow("output",frame);
