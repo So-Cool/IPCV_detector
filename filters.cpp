@@ -166,7 +166,7 @@ void sobel(const cv::Mat& image, cv::Mat& xDeriv, cv::Mat& yDeriv, cv::Mat& grad
 	cv::Mat divided, arcNorm;
 	arc = ( cv::Mat(xDeriv.rows, xDeriv.cols, CV_64F) ).clone() ;
 	cv::divide(yDeriv, xDeriv, divided);
-	cout << "sobel doing" << endl;
+	// cout << "sobel doing" << endl;
 	for(int i = 0; i < divided.rows; i++)
 	{
 		for(int j =0; j < divided.cols; j++)
@@ -174,7 +174,7 @@ void sobel(const cv::Mat& image, cv::Mat& xDeriv, cv::Mat& yDeriv, cv::Mat& grad
 			arc.at<double>(i, j) = (double)atan2(yDeriv.at<double>(i,j), xDeriv.at<double>(i,j)) ;//* 180 / PI;
 		}
 	}
-	cout << "sobel done" << endl;
+	// cout << "sobel done" << endl;
 }
 
 

@@ -44,6 +44,8 @@ void detectAndSave( Mat frame )
 {
 	std::vector<Rect> faces, faces1, faces2;
 	Mat frame_gray;
+
+
 	double average = 0;
 	double  count = 0;
 
@@ -54,6 +56,8 @@ void detectAndSave( Mat frame )
 	equalizeHist( frame_gray, frame_gray );
 
 	Mat original = frame_gray.clone();
+	int imageRows = original.rows;
+	int imageCols = original.cols;
 
 	// delete dark colors (preparation for histogram stretching)
 	Mat bright(frame_gray.rows, frame_gray.cols, CV_8U, cv::Scalar::all(0));
@@ -91,13 +95,13 @@ void detectAndSave( Mat frame )
 	// As effect we get overall darken image
 	Mat darken;
 	cv::normalize(bright, darken, 0, 255, cv::NORM_MINMAX);
-	imshow("Dark", darken);
-	waitKey();
+	if(SHOW) imshow("Dark", darken);
+	if(SHOW) waitKey();
 
 	Mat brighten;
 	cv::normalize(dark, brighten, 0, 255, cv::NORM_MINMAX);
-	imshow("Bright", brighten);
-	waitKey();
+	if(SHOW) imshow("Bright", brighten);
+	if(SHOW) waitKey();
 
 	// detect circles and print them
 	cv::Mat xDeriveCRC, yDeriveCRC, gradCRC, arcCRC, outCRC;
@@ -120,8 +124,8 @@ void detectAndSave( Mat frame )
 	// Apply Mexican Hat filter
 	mexHat(outCRC, temp8Bit);
 	mexHat(temp8Bit, temp8Bit);
-	imshow("CRC & MexHat", temp8Bit);
-	waitKey();
+	if(SHOW) imshow("CRC & MexHat", temp8Bit);
+	if(SHOW) waitKey();
 
 	//choose the coordinates of brightest points
 	int rowsmax = 0;
@@ -129,64 +133,158 @@ void detectAndSave( Mat frame )
 	int radmax = 0;
 	int vmax = 0;
 	int tempmax = 0;
-	std::vector<cv::Point> brightSpots;
-	for (int i = 0; i < temp8Bit.rows; ++i)
-	{
-		for (int j = 0; j < temp8Bit.cols; ++j)
-		{
-			tempmax = temp8Bit.at<uchar>(i,j);
-			if (tempmax > vmax)
-			{
-				vmax = tempmax;
-				rowsmax = i;
-				colsmax = j;
-			}
-		}
-	}
-	for (int i = 0; i < temp8Bit.rows; ++i)
-	{
-		for (int j = 0; j < temp8Bit.cols; ++j)
-		{
-			tempmax = temp8Bit.at<uchar>(i,j);
-			if (tempmax == vmax)
-			{
-				// push coordinates to vector
-				brightSpots.push_back(cv::Point(i, j));
-			}
-		}
-	}
+	bool notfound = true;
 
-	typedef std::vector<cv::Point>::iterator PointIter;
-	tempmax = 0;
-	for(PointIter it = brightSpots.begin(); it != brightSpots.end(); ++it)
+
+    // providing a negative number will create a filled circle
+    int thickness = 2;
+	// Parameters for circle
+    cv::Scalar redColour(255, 0, 0);
+    // 8-connected line
+    int linetype = 8; 
+
+	// int lol = 0;
+
+	std::vector<cv::Point> brightSpots;
+	std::vector<int> brightR;
+	std::vector<int> brightValue;
+	for (int i = 0; i < temp8Bit.rows; ++i)
 	{
-		cv::Point p = *it;
-		for (int r = RMIN; r < RMAX; ++r)
+		for (int j = 0; j < temp8Bit.cols; ++j)
 		{
-			if (roundShapes[p.x][p.y][r] > tempmax - RADDIVER )
+			if (temp8Bit.at<uchar>(i,j) > CIRCLETHRESHOLD  )
 			{
-				if(r>radmax)
+				rowsmax = 0;
+				colsmax = 0;
+				radmax = 0;
+				vmax = 0;
+				tempmax = 0;
+
+				for (int k = RMIN; k < RMAX; ++k)
 				{
-					tempmax = roundShapes[p.x][p.y][r];
-					rowsmax = p.x;
-					colsmax = p.y;
-					radmax = r;
+					if ( roundShapes[i][j][k] > vmax)
+					{
+						vmax = roundShapes[i][j][k];
+						radmax = k;
+						// ++lol;
+					}
+				}
+
+				if (radmax > DISCARDRADIUS)
+				{
+
+					// if list empty put first element
+					if (brightSpots.size() == 0 && radmax*2<imageCols && radmax*2<imageRows)
+					{
+						cout << "dodaje bo empty: " << i << " " << j << vmax << endl;
+						brightSpots.push_back(cv::Point(i, j));
+						brightR.push_back(radmax);
+						brightValue.push_back(vmax);
+					}
+					else
+					{
+						//if there is a spot close enough don't put it
+						for (int l = 0; l < brightSpots.size(); ++l)
+						{
+							// erase the 6th element
+						    // myvector.erase (myvector.begin()+5);
+						    notfound = true;
+							if  ( abs(brightSpots[l].x - i ) < PROXIMITY &&
+									abs( brightSpots[l].y - j ) < PROXIMITY)
+							{
+								if( roundShapes[i][j][radmax] > roundShapes[brightSpots[l].x][brightSpots[l].y][brightR[l]] && radmax*2<imageCols && radmax*2<imageRows )
+								{
+
+									// cout << abs(brightSpots[l].x - i ) << "  " << abs(brightSpots[l].y - j ) << endl;
+									//swap
+											// pamietaj o R
+									// cout << "L before: " << brightSpots.size() << endl;
+									brightSpots.erase(brightSpots.begin()+ l);
+									brightR.erase(brightR.begin()+ l);
+									brightValue.erase(brightValue.begin()+ l);
+									// cout << "L after: " << brightSpots.size() << endl;
+
+
+									// cout << " Found similar " << endl;
+									// brightSpots.push_back(cv::Point(i, j));
+									// brightR.push_back(radmax);
+									// brightValue.push_back(vmax);
+
+									notfound=true;
+									break;
+								}
+								else
+								{
+									notfound = false;
+									break;
+								}
+							}
+							// else 
+							// 	notfound = true ;
+						}
+
+						// add new if not fount
+						if (notfound && radmax*2<imageCols && radmax*2<imageRows)
+						{
+							cout << "dodaje: " << i << " " << j << endl;
+							brightSpots.push_back(cv::Point(i, j));
+							brightR.push_back(radmax);
+							brightValue.push_back(vmax);
+						}
+
+					}
 				}
 			}
 		}
 	}
 
-		// Parameters for circle
-	    cv::Scalar redColour(255, 0, 0);
-	    int radius = radmax;
-	    // providing a negative number will create a filled circle
-	    int thickness = 2;
-	    // 8 connected line
-	    // ( also there is a 4 connected line and CVAA which is an anti aliased line )
-	    int linetype = 8; 
-		cv::Point center( colsmax, rowsmax );
-		if( radius > DISCARDRADIUS)
-			cv::circle ( frame , center , radius , redColour , thickness , linetype );
+
+	// print circles
+	for (int i = 0; i < brightSpots.size(); ++i)
+	{
+		cout << "CIRC: " << brightSpots[i].x << " " << brightSpots[i].y << " " << brightR[i] << endl;
+		// brightValue.push_back(vmax);
+	    int radius = brightR[i];
+		cv::Point center( brightSpots[i].y, brightSpots[i].x );
+		cv::circle ( frame , center , radius , redColour , thickness , linetype );
+	}
+
+
+	// cout << "ile loli: " << lol << endl;
+	// for (int i = 0; i < temp8Bit.rows; ++i)
+	// {
+	// 	for (int j = 0; j < temp8Bit.cols; ++j)
+	// 	{
+	// 		tempmax = temp8Bit.at<uchar>(i,j);
+	// 		if (tempmax == vmax)
+	// 		{
+	// 			// push coordinates to vector
+				
+	// 		}
+	// 	}
+	// }
+
+	// typedef std::vector<cv::Point>::iterator PointIter;
+	// tempmax = 0;
+	// for(PointIter it = brightSpots.begin(); it != brightSpots.end(); ++it)
+	// {
+	// 	cv::Point p = *it;
+	// 	for (int r = RMIN; r < RMAX; ++r)
+	// 	{
+	// 		if (roundShapes[p.x][p.y][r] > tempmax - RADDIVER )
+	// 		{
+	// 			if(r>radmax)
+	// 			{
+	// 				tempmax = roundShapes[p.x][p.y][r];
+	// 				rowsmax = p.x;
+	// 				colsmax = p.y;
+	// 				radmax = r;
+	// 			}
+	// 		}
+	// 	}
+	// }
+
+
 
 
 	// Blur the image to smooth the noise
