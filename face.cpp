@@ -102,6 +102,7 @@ void detectAndSave( Mat frame )
 	// detect circles and print them
 	cv::Mat xDeriveCRC, yDeriveCRC, gradCRC, arcCRC, outCRC;
 	sobel(darken, xDeriveCRC, yDeriveCRC, gradCRC, arcCRC); // original
+
 	std::vector<std::vector<std::vector<int> > > roundShapes = detectCircles(gradCRC, arcCRC, outCRC);
 
 	// threshold Hough space
@@ -161,12 +162,15 @@ void detectAndSave( Mat frame )
 		cv::Point p = *it;
 		for (int r = RMIN; r < RMAX; ++r)
 		{
-			if (roundShapes[p.x][p.y][r] > tempmax)
+			if (roundShapes[p.x][p.y][r] > tempmax - RADDIVER )
 			{
-				tempmax = roundShapes[p.x][p.y][r];
-				rowsmax = p.x;
-				colsmax = p.y;
-				radmax = r;
+				if(r>radmax)
+				{
+					tempmax = roundShapes[p.x][p.y][r];
+					rowsmax = p.x;
+					colsmax = p.y;
+					radmax = r;
+				}
 			}
 		}
 	}
@@ -197,18 +201,65 @@ void detectAndSave( Mat frame )
 
 
 	//-- Detect faces
-	// logo_cascade.detectMultiScale( gaussianB5, faces, 1.1, 1, 0|CV_HAAR_SCALE_IMAGE, Size(50, 50), Size(500,500) ); //blurred
-	// logo_cascade.detectMultiScale( gaussianB3, faces, 1.1, 1, 0|CV_HAAR_SCALE_IMAGE, Size(50, 50), Size(500,500) ); //blurred
-	// logo_cascade.detectMultiScale( gaussianB1, faces, 1.1, 1, 0|CV_HAAR_SCALE_IMAGE, Size(50, 50), Size(500,500) ); //blurred
-	// std::cout << faces.size() << std::endl;
+	logo_cascade.detectMultiScale( gaussianB5, faces, 1.1, 1, 0|CV_HAAR_SCALE_IMAGE, Size(50, 50), Size(500,500) ); //blurred
+	logo_cascade.detectMultiScale( gaussianB3, faces1, 1.1, 1, 0|CV_HAAR_SCALE_IMAGE, Size(50, 50), Size(500,500) ); //blurred
+	logo_cascade.detectMultiScale( gaussianB1, faces2, 1.1, 1, 0|CV_HAAR_SCALE_IMAGE, Size(50, 50), Size(500,500) ); //blurred
+	std::cout << faces.size() + faces1.size() + faces2.size() << std::endl;
 
-	// for( int i = 0; i < faces.size(); i++ )
-	// {
-	// 	// Mat tmp;
-	// 	// extractRegion(original, tmp, faces[i].x, faces[i].y, faces[i].width);
-	// 	// if(!checkHomogenity(tmp))
-	// 	rectangle(frame, Point(faces[i].x, faces[i].y), Point(faces[i].x + faces[i].width, faces[i].y + faces[i].height), Scalar( 0, 255, 0 ), 2);
-	// }
+	Mat tmp;
+
+	// lines
+	cv::Mat line_xDeriv, line_yDeriv, line_grad, line_arc;
+
+	for( int i = 0; i < faces.size(); i++ )
+	{
+		extractRegion(original, tmp, faces[i].x, faces[i].y, faces[i].width);
+		Canny(tmp, tmp, 50, 200, 3);
+		// imshow("ext", tmp);
+		// waitKey();
+		sobel(tmp, line_xDeriv, line_yDeriv, line_grad, line_arc);//original
+		detectLines(line_grad, line_arc, tmp);
+		// mexHat(tmp, tmp);
+		// imshow("extLine", tmp);
+		// waitKey();
+		// if(!checkHomogenity(tmp))
+
+		rectangle(frame, Point(faces[i].x, faces[i].y), Point(faces[i].x + faces[i].width, faces[i].y + faces[i].height), Scalar( 0, 255, 0 ), 2);
+	}
+	for( int i = 0; i < faces1.size(); i++ )
+	{
+
+
+		extractRegion(original, tmp, faces1[i].x, faces1[i].y, faces1[i].width);
+		Canny(tmp, tmp, 50, 200, 3);
+		// imshow("ext", tmp);
+		// waitKey();
+		sobel(tmp, line_xDeriv, line_yDeriv, line_grad, line_arc);//original
+		detectLines(line_grad, line_arc, tmp);
+		// mexHat(tmp, tmp);
+		// imshow("extLine", tmp);
+		// waitKey();
+		// if(!checkHomogenity(tmp))
+
+	rectangle(frame, Point(faces1[i].x, faces1[i].y), Point(faces1[i].x + faces1[i].width, faces1[i].y + faces1[i].height), Scalar( 0, 0, 255 ), 2);
+	}
+	for( int i = 0; i < faces2.size(); i++ )
+	{
+
+		extractRegion(original, tmp, faces2[i].x, faces2[i].y, faces2[i].width);
+		Canny(tmp, tmp, 50, 200, 3);
+		// imshow("ext", tmp);
+		// waitKey();
+		sobel(tmp, line_xDeriv, line_yDeriv, line_grad, line_arc);//original
+		detectLines(line_grad, line_arc, tmp);
+		// mexHat(tmp, tmp);
+		// imshow("extLine", tmp);
+		// waitKey();
+		// if(!checkHomogenity(tmp))
+
+
+	rectangle(frame, Point(faces2[i].x, faces2[i].y), Point(faces2[i].x + faces2[i].width, faces2[i].y + faces2[i].height), Scalar( 255, 255, 0 ), 2);
+	}
 
 	//-- Save what you got
 	imshow("output",frame);
@@ -251,7 +302,7 @@ void detectAndSave( Mat frame )
 	//detect lines
 	// cv::Mat xDeriv, yDeriv, grad_ory, grad_trs, arc_ory, arc_trs, output, out2, outcirc ;//frame_gray
 	// sobel(darken, xDeriv, yDeriv, grad_ory, arc_ory);//original
-	// sobel(sharpened, xDeriv, yDeriv, grad_trs, arc_trs);//original
+	// sobel(original, xDeriv, yDeriv, grad_trs, arc_trs);//original
 	// detectCircles(grad_ory, arc_ory, outcirc);
 	// detectLines(grad_trs, arc_trs, output);
 	//detect lines only in circle with adaptive threshold

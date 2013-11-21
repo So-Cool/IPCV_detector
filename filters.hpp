@@ -13,12 +13,16 @@
 #define LINEYDIM 314
 
 //circle
-#define RMIN 20//5
-#define RMAX 400//300//150//75
+#define RMIN 5
+#define RMAX 200//400//300//150//75
 #define CIRCLETHRESHOLD 220//220//220
 
 #define HOMOGENITYTHRS 40
 #define HOMOGENITYCOND 60  // more than 80% in confidence interval +- 20 in %'s'
+
+// divergence of max value in rircle detection
+#define RADDIVER 1//3
+#define CENTREDIST 20
 
 #define SHOW 0
 
