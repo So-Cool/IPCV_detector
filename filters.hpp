@@ -22,7 +22,10 @@
 
 // divergence of max value in rircle detection
 #define RADDIVER 1//3
-#define CENTREDIST 20
+#define PROXIMITY 20
+#define DISCARDRADIUS 10
+//maximum number of circles per image
+#define MAXCIRCNO 3
 
 #define SHOW 0
 

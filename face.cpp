@@ -119,6 +119,7 @@ void detectAndSave( Mat frame )
 
 	// Apply Mexican Hat filter
 	mexHat(outCRC, temp8Bit);
+	mexHat(temp8Bit, temp8Bit);
 	imshow("CRC & MexHat", temp8Bit);
 	waitKey();
 
@@ -184,7 +185,8 @@ void detectAndSave( Mat frame )
 	    // ( also there is a 4 connected line and CVAA which is an anti aliased line )
 	    int linetype = 8; 
 		cv::Point center( colsmax, rowsmax );
-		cv::circle ( frame , center , radius , redColour , thickness , linetype );
+		if( radius > DISCARDRADIUS)
+			cv::circle ( frame , center , radius , redColour , thickness , linetype );
 
 
 	// Blur the image to smooth the noise
