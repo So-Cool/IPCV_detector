@@ -474,148 +474,245 @@ void detectAndSave( Mat frame )
 	}
 
 	//delete overlapping squares
-	for (int i = 0; i < brightSquares.size(); ++i)
-	{
-		// if i belongs to other (j) with some margin delete and break
-		for (int j = i+1; j < brightSquares.size(); ++j)
-		{
-			//similar top-left and bottom right
-			if ( abs( brightSquares[i].x - brightSquares[j].x ) < SQUARETHRESHOLD &&
-				abs( brightSquares[i].y - brightSquares[j].y ) < SQUARETHRESHOLD &&
-				abs( brightSquares[i].x + brightSquares[i].height - brightSquares[j].x -brightSquares[j].height ) < SQUARETHRESHOLD &&
-				abs( brightSquares[i].y + brightSquares[i].width - brightSquares[j].y -brightSquares[j].width ) < SQUARETHRESHOLD )
-			{
-				brightSquares.erase(brightSquares.begin()+ i);
-				break;
-			}
+	vector<int> deleteme;
 
 
-			//similar top-left and bottom-right inside(i)
-			if ( abs( brightSquares[i].x - brightSquares[j].x ) < SQUARETHRESHOLD &&
-				abs( brightSquares[i].y - brightSquares[j].y ) < SQUARETHRESHOLD &&
-				brightSquares[i].x + brightSquares[i].height < brightSquares[j].x +brightSquares[j].height + SQUARETHRESHOLD &&
-				brightSquares[i].y + brightSquares[i].width < brightSquares[j].y +brightSquares[j].width + SQUARETHRESHOLD )
-			{
-				brightSquares.erase(brightSquares.begin()+ i);
-				break;
-			}
-
-			//top-left inside and bottom-right similar
-			if ( brightSquares[i].x > brightSquares[j].x - SQUARETHRESHOLD &&
-				brightSquares[i].y > brightSquares[j].y - SQUARETHRESHOLD &&
-				abs( brightSquares[i].x + brightSquares[i].height - brightSquares[j].x -brightSquares[j].height ) < SQUARETHRESHOLD &&
-				abs( brightSquares[i].y + brightSquares[i].width - brightSquares[j].y -brightSquares[j].width ) < SQUARETHRESHOLD )
-			{
-				brightSquares.erase(brightSquares.begin()+ i);
-				break;
-			}
-
-			//top-left inside and bottom-right inside
-			if ( brightSquares[i].x > brightSquares[j].x - SQUARETHRESHOLD &&
-				brightSquares[i].y > brightSquares[j].y - SQUARETHRESHOLD &&
-				brightSquares[i].x + brightSquares[i].height < brightSquares[j].x +brightSquares[j].height + SQUARETHRESHOLD &&
-				brightSquares[i].y + brightSquares[i].width < brightSquares[j].y +brightSquares[j].width + SQUARETHRESHOLD )
-			{
-				brightSquares.erase(brightSquares.begin()+ i);
-				break;
-			}
-
-
-
-
-
-
-
-
-
-			// // one inside other
-			// if ( brightSquares[i].x - brightSquares[j].x > 0 &&
-			// 	brightSquares[i].y - brightSquares[j].y > 0 &&
-			// 	abs( brightSquares[i].width -brightSquares[j].width ) < SQUARETHRESHOLD+20 &&
-			// 	abs( brightSquares[i].height  -brightSquares[j].height ) < SQUARETHRESHOLD+20 )
-			// {
-			// 	brightSquares.erase(brightSquares.begin()+ i);
-			// 	break;
-			// }
-
-			// if ( brightSquares[i].x - brightSquares[j].x > 0 &&
-			// 	brightSquares[i].y - brightSquares[j].y > 0 &&
-			// 	abs( brightSquares[i].x + brightSquares[i].width - brightSquares[j].x -brightSquares[j].width ) < SQUARETHRESHOLD &&
-			// 	abs( brightSquares[i].y + brightSquares[i].height - brightSquares[j].y -brightSquares[j].height ) < SQUARETHRESHOLD )
-			// {
-			// 	brightSquares.erase(brightSquares.begin()+ i);
-			// 	break;
-			// }
-
-
-			// if ( brightSquares[i].x - brightSquares[j].x < 0 &&
-			// 	brightSquares[i].y - brightSquares[j].y < 0 &&
-			// 	abs( brightSquares[i].x + brightSquares[i].width - brightSquares[j].x -brightSquares[j].width ) < SQUARETHRESHOLD &&
-			// 	abs( brightSquares[i].y + brightSquares[i].height - brightSquares[j].y -brightSquares[j].height ) < SQUARETHRESHOLD )
-			// {
-			// 	brightSquares.erase(brightSquares.begin()+ j);
-			// 	break;
-			// }
-
-			// if ( brightSquares[i].x - brightSquares[j].x < 0 &&
-			// 	brightSquares[i].y - brightSquares[j].y < 0 &&
-			// 	abs( brightSquares[i].width -brightSquares[j].width ) < SQUARETHRESHOLD+20 &&
-			// 	abs( brightSquares[i].height  -brightSquares[j].height ) < SQUARETHRESHOLD+20 )
-			// {
-			// 	brightSquares.erase(brightSquares.begin()+ j);
-			// 	break;
-			// }
-
-		}
-		// rectangle(frame, Point(brightSquares[i].x, brightSquares[i].y), Point(brightSquares[i].x + brightSquares[i].width, brightSquares[i].y + brightSquares[i].height), Scalar( 0, 255, 255 ), 2);
-	}	
-		for (int j = 0; j < brightSquares.size(); ++j)
+	for (int j = 0; j < brightSquares.size(); ++j)
 	{
 		// if i belongs to other (j) with some margin delete and break
 		for (int i = j+1; i < brightSquares.size(); ++i)
 		{
 			//similar top-left and bottom right
-			if ( abs( brightSquares[i].x - brightSquares[j].x ) < SQUARETHRESHOLD &&
-				abs( brightSquares[i].y - brightSquares[j].y ) < SQUARETHRESHOLD &&
-				abs( brightSquares[i].x + brightSquares[i].height - brightSquares[j].x -brightSquares[j].height ) < SQUARETHRESHOLD &&
-				abs( brightSquares[i].y + brightSquares[i].width - brightSquares[j].y -brightSquares[j].width ) < SQUARETHRESHOLD )
+			if ( abs( brightSquares[i].y - brightSquares[j].y ) < SQUARETHRESHOLD &&
+				abs( brightSquares[i].x - brightSquares[j].x ) < SQUARETHRESHOLD &&
+				abs( brightSquares[i].y + brightSquares[i].height - brightSquares[j].y -brightSquares[j].height ) < SQUARETHRESHOLD &&
+				abs( brightSquares[i].x + brightSquares[i].width - brightSquares[j].x -brightSquares[j].width ) < SQUARETHRESHOLD )
 			{
-				brightSquares.erase(brightSquares.begin()+ i);
-				break;
+				// brightSquares.erase(brightSquares.begin()+ i);
+				deleteme.push_back(i);
+				// break;
+				continue;
 			}
 
 
 			//similar top-left and bottom-right inside(i)
-			if ( abs( brightSquares[i].x - brightSquares[j].x ) < SQUARETHRESHOLD &&
-				abs( brightSquares[i].y - brightSquares[j].y ) < SQUARETHRESHOLD &&
-				brightSquares[i].x + brightSquares[i].height < brightSquares[j].x +brightSquares[j].height + SQUARETHRESHOLD &&
-				brightSquares[i].y + brightSquares[i].width < brightSquares[j].y +brightSquares[j].width + SQUARETHRESHOLD )
+			if ( abs( brightSquares[i].y - brightSquares[j].y ) < SQUARETHRESHOLD &&
+				abs( brightSquares[i].x - brightSquares[j].x ) < SQUARETHRESHOLD &&
+				brightSquares[i].y + brightSquares[i].height < brightSquares[j].y +brightSquares[j].height + SQUARETHRESHOLD &&
+				brightSquares[i].x + brightSquares[i].width < brightSquares[j].x +brightSquares[j].width + SQUARETHRESHOLD )
 			{
-				brightSquares.erase(brightSquares.begin()+ i);
-				break;
+				// brightSquares.erase(brightSquares.begin()+ i);
+				deleteme.push_back(i);
+				// break;
+				continue;
 			}
 
 			//top-left inside and bottom-right similar
-			if ( brightSquares[i].x > brightSquares[j].x - SQUARETHRESHOLD &&
-				brightSquares[i].y > brightSquares[j].y - SQUARETHRESHOLD &&
-				abs( brightSquares[i].x + brightSquares[i].height - brightSquares[j].x -brightSquares[j].height ) < SQUARETHRESHOLD &&
-				abs( brightSquares[i].y + brightSquares[i].width - brightSquares[j].y -brightSquares[j].width ) < SQUARETHRESHOLD )
+			if ( brightSquares[i].y > brightSquares[j].y - SQUARETHRESHOLD &&
+				brightSquares[i].x > brightSquares[j].x - SQUARETHRESHOLD &&
+				abs( brightSquares[i].y + brightSquares[i].height - brightSquares[j].y -brightSquares[j].height ) < SQUARETHRESHOLD &&
+				abs( brightSquares[i].x + brightSquares[i].width - brightSquares[j].x -brightSquares[j].width ) < SQUARETHRESHOLD )
 			{
-				brightSquares.erase(brightSquares.begin()+ i);
-				break;
+				// brightSquares.erase(brightSquares.begin()+ i);
+				deleteme.push_back(i);
+				// break;
+				continue;
 			}
 
 			//top-left inside and bottom-right inside
-			if ( brightSquares[i].x > brightSquares[j].x - SQUARETHRESHOLD &&
-				brightSquares[i].y > brightSquares[j].y - SQUARETHRESHOLD &&
-				brightSquares[i].x + brightSquares[i].height < brightSquares[j].x +brightSquares[j].height + SQUARETHRESHOLD &&
-				brightSquares[i].y + brightSquares[i].width < brightSquares[j].y +brightSquares[j].width + SQUARETHRESHOLD )
+			if ( brightSquares[i].y > brightSquares[j].y - SQUARETHRESHOLD &&
+				brightSquares[i].x > brightSquares[j].x - SQUARETHRESHOLD &&
+				brightSquares[i].y + brightSquares[i].height < brightSquares[j].y +brightSquares[j].height + SQUARETHRESHOLD &&
+				brightSquares[i].x + brightSquares[i].width < brightSquares[j].x +brightSquares[j].width + SQUARETHRESHOLD )
 			{
-				brightSquares.erase(brightSquares.begin()+ i);
-				break;
+				// brightSquares.erase(brightSquares.begin()+ i);
+				deleteme.push_back(i);
+				// break;
+				continue;
 			}
 		}
+
+		// remove duplicates
+		  std::sort(deleteme.begin(), deleteme.end());
+		  deleteme.erase(std::unique(deleteme.begin(), deleteme.end()), deleteme.end());
+
+		for (int k = deleteme.size()-1; k >=0 ; --k)
+		{
+			brightSquares.erase(brightSquares.begin()+deleteme[k]);
+		}
+		//erase vectpr
+		deleteme.clear();
 	}
+
+	
+
+
+	for (int j = brightSquares.size()-1; j >=0 ; --j)
+	{
+		// if i belongs to other (j) with some margin delete and break
+		for (int i = 0; i < j ; ++i)
+		{
+			//similar top-left and bottom right
+			if ( abs( brightSquares[i].y - brightSquares[j].y ) < SQUARETHRESHOLD &&
+				abs( brightSquares[i].x - brightSquares[j].x ) < SQUARETHRESHOLD &&
+				abs( brightSquares[i].y + brightSquares[i].height - brightSquares[j].y -brightSquares[j].height ) < SQUARETHRESHOLD &&
+				abs( brightSquares[i].x + brightSquares[i].width - brightSquares[j].x -brightSquares[j].width ) < SQUARETHRESHOLD )
+			{
+				// brightSquares.erase(brightSquares.begin()+ i);
+				deleteme.push_back(i);
+				// break;
+				continue;
+			}
+
+
+			//similar top-left and bottom-right inside(i)
+			if ( abs( brightSquares[i].y - brightSquares[j].y ) < SQUARETHRESHOLD &&
+				abs( brightSquares[i].x - brightSquares[j].x ) < SQUARETHRESHOLD &&
+				brightSquares[i].y + brightSquares[i].height < brightSquares[j].y +brightSquares[j].height + SQUARETHRESHOLD &&
+				brightSquares[i].x + brightSquares[i].width < brightSquares[j].x +brightSquares[j].width + SQUARETHRESHOLD )
+			{
+				// brightSquares.erase(brightSquares.begin()+ i);
+				deleteme.push_back(i);
+				// break;
+				continue;
+			}
+
+			//top-left inside and bottom-right similar
+			if ( brightSquares[i].y > brightSquares[j].y - SQUARETHRESHOLD &&
+				brightSquares[i].x > brightSquares[j].x - SQUARETHRESHOLD &&
+				abs( brightSquares[i].y + brightSquares[i].height - brightSquares[j].y -brightSquares[j].height ) < SQUARETHRESHOLD &&
+				abs( brightSquares[i].x + brightSquares[i].width - brightSquares[j].x -brightSquares[j].width ) < SQUARETHRESHOLD )
+			{
+				// brightSquares.erase(brightSquares.begin()+ i);
+				deleteme.push_back(i);
+				// break;
+				continue;
+			}
+
+			//top-left inside and bottom-right inside
+			if ( brightSquares[i].y > brightSquares[j].y - SQUARETHRESHOLD &&
+				brightSquares[i].x > brightSquares[j].x - SQUARETHRESHOLD &&
+				brightSquares[i].y + brightSquares[i].height < brightSquares[j].y +brightSquares[j].height + SQUARETHRESHOLD &&
+				brightSquares[i].x + brightSquares[i].width < brightSquares[j].x +brightSquares[j].width + SQUARETHRESHOLD )
+			{
+				// brightSquares.erase(brightSquares.begin()+ i);
+				deleteme.push_back(i);
+				// break;
+				continue;
+			}
+		}
+		// remove duplicates
+	  std::sort(deleteme.begin(), deleteme.end());
+		  deleteme.erase(std::unique(deleteme.begin(), deleteme.end()), deleteme.end());
+
+		for (int k = deleteme.size()-1; k >=0 ; --k)
+		{
+			brightSquares.erase(brightSquares.begin()+deleteme[k]);
+		}
+				//erase vectpr
+		deleteme.clear();
+	}
+
+
+
+
+
+
+	// for (int i = 0; i < brightSquares.size(); ++i)
+	// {
+	// 	// if i belongs to other (j) with some margin delete and break
+	// 	for (int j = i+1; j < brightSquares.size(); ++j)
+	// 	{
+	// 		//similar top-left and bottom right
+	// 		if ( abs( brightSquares[i].y - brightSquares[j].y ) < SQUARETHRESHOLD &&
+	// 			abs( brightSquares[i].x - brightSquares[j].x ) < SQUARETHRESHOLD &&
+	// 			abs( brightSquares[i].y + brightSquares[i].height - brightSquares[j].y -brightSquares[j].height ) < SQUARETHRESHOLD &&
+	// 			abs( brightSquares[i].x + brightSquares[i].width - brightSquares[j].x -brightSquares[j].width ) < SQUARETHRESHOLD )
+	// 		{
+	// 			brightSquares.erase(brightSquares.begin()+ i);
+	// 			break;
+	// 		}
+
+
+	// 		//similar top-left and bottom-right inside(i)
+	// 		if ( abs( brightSquares[i].y - brightSquares[j].y ) < SQUARETHRESHOLD &&
+	// 			abs( brightSquares[i].x - brightSquares[j].x ) < SQUARETHRESHOLD &&
+	// 			brightSquares[i].y + brightSquares[i].height < brightSquares[j].y +brightSquares[j].height + SQUARETHRESHOLD &&
+	// 			brightSquares[i].x + brightSquares[i].width < brightSquares[j].x +brightSquares[j].width + SQUARETHRESHOLD )
+	// 		{
+	// 			brightSquares.erase(brightSquares.begin()+ i);
+	// 			break;
+	// 		}
+
+	// 		//top-left inside and bottom-right similar
+	// 		if ( brightSquares[i].y > brightSquares[j].y - SQUARETHRESHOLD &&
+	// 			brightSquares[i].x > brightSquares[j].x - SQUARETHRESHOLD &&
+	// 			abs( brightSquares[i].y + brightSquares[i].height - brightSquares[j].y -brightSquares[j].height ) < SQUARETHRESHOLD &&
+	// 			abs( brightSquares[i].x + brightSquares[i].width - brightSquares[j].x -brightSquares[j].width ) < SQUARETHRESHOLD )
+	// 		{
+	// 			brightSquares.erase(brightSquares.begin()+ i);
+	// 			break;
+	// 		}
+
+	// 		//top-left inside and bottom-right inside
+	// 		if ( brightSquares[i].y > brightSquares[j].y - SQUARETHRESHOLD &&
+	// 			brightSquares[i].x > brightSquares[j].x - SQUARETHRESHOLD &&
+	// 			brightSquares[i].y + brightSquares[i].height < brightSquares[j].y +brightSquares[j].height + SQUARETHRESHOLD &&
+	// 			brightSquares[i].x + brightSquares[i].width < brightSquares[j].x +brightSquares[j].width + SQUARETHRESHOLD )
+	// 		{
+	// 			brightSquares.erase(brightSquares.begin()+ i);
+	// 			break;
+	// 		}
+
+
+
+
+
+
+
+
+
+	// 		// // one inside other
+	// 		// if ( brightSquares[i].x - brightSquares[j].x > 0 &&
+	// 		// 	brightSquares[i].y - brightSquares[j].y > 0 &&
+	// 		// 	abs( brightSquares[i].width -brightSquares[j].width ) < SQUARETHRESHOLD+20 &&
+	// 		// 	abs( brightSquares[i].height  -brightSquares[j].height ) < SQUARETHRESHOLD+20 )
+	// 		// {
+	// 		// 	brightSquares.erase(brightSquares.begin()+ i);
+	// 		// 	break;
+	// 		// }
+
+	// 		// if ( brightSquares[i].x - brightSquares[j].x > 0 &&
+	// 		// 	brightSquares[i].y - brightSquares[j].y > 0 &&
+	// 		// 	abs( brightSquares[i].x + brightSquares[i].width - brightSquares[j].x -brightSquares[j].width ) < SQUARETHRESHOLD &&
+	// 		// 	abs( brightSquares[i].y + brightSquares[i].height - brightSquares[j].y -brightSquares[j].height ) < SQUARETHRESHOLD )
+	// 		// {
+	// 		// 	brightSquares.erase(brightSquares.begin()+ i);
+	// 		// 	break;
+	// 		// }
+
+
+	// 		// if ( brightSquares[i].x - brightSquares[j].x < 0 &&
+	// 		// 	brightSquares[i].y - brightSquares[j].y < 0 &&
+	// 		// 	abs( brightSquares[i].x + brightSquares[i].width - brightSquares[j].x -brightSquares[j].width ) < SQUARETHRESHOLD &&
+	// 		// 	abs( brightSquares[i].y + brightSquares[i].height - brightSquares[j].y -brightSquares[j].height ) < SQUARETHRESHOLD )
+	// 		// {
+	// 		// 	brightSquares.erase(brightSquares.begin()+ j);
+	// 		// 	break;
+	// 		// }
+
+	// 		// if ( brightSquares[i].x - brightSquares[j].x < 0 &&
+	// 		// 	brightSquares[i].y - brightSquares[j].y < 0 &&
+	// 		// 	abs( brightSquares[i].width -brightSquares[j].width ) < SQUARETHRESHOLD+20 &&
+	// 		// 	abs( brightSquares[i].height  -brightSquares[j].height ) < SQUARETHRESHOLD+20 )
+	// 		// {
+	// 		// 	brightSquares.erase(brightSquares.begin()+ j);
+	// 		// 	break;
+	// 		// }
+
+	// 	}
+	// 	// rectangle(frame, Point(brightSquares[i].x, brightSquares[i].y), Point(brightSquares[i].x + brightSquares[i].width, brightSquares[i].y + brightSquares[i].height), Scalar( 0, 255, 255 ), 2);
+	// }
 
 	// print detected squares
 	for (int i = 0; i < brightSquares.size(); ++i)
