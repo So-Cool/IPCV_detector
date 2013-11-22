@@ -468,14 +468,23 @@ bool checkHomogenity(const Mat& input)
 
 
 // threshold the image with a few levels
-void nLvlTrsh( const Mat& input, Mat& output )
+std::vector<double> nLvlTrsh( const Mat& input, Mat& output )
 {
+	double o = 0;
+	double a = 0;
+	double b = 0;
+	double c = 0;
+	double d = 0;
+	double e = 0;
+	double f = 0;
+	std::vector<double> v;
     // threshold to produce solid black(remove shades)
     for(int i = 0; i < input.rows; ++i)
     {
         for (int j = 0; j < input.cols; ++j)
         {
             uchar tr = input.at<uchar>(i, j);
+            ++o;
             // if(tr < 35)
             // {
             //         input.at<uchar>(i, j) = 15 ;//0
@@ -496,6 +505,7 @@ void nLvlTrsh( const Mat& input, Mat& output )
             if(tr < 100)
             {
                     output.at<uchar>(i, j) = 0;
+                    ++a;
             }
             // else if(tr<75)
             // {
@@ -508,22 +518,27 @@ void nLvlTrsh( const Mat& input, Mat& output )
             else if (tr<125)
             {
                     output.at<uchar>(i, j) = 100;
+                    ++b;
             }
             else if (tr<150)
             {
                     output.at<uchar>(i, j) = 120;
+                    ++c;
             }
-            // else if (tr<175)
-            // {
-            //         output.at<uchar>(i, j) = 140;
-            // }
-            // else if (tr<200)
-            // {
-            //         output.at<uchar>(i, j) = 160;
-            // }
+            else if (tr<175)
+            {
+                    output.at<uchar>(i, j) = 140;
+                    ++d;
+            }
+            else if (tr<200)
+            {
+                    output.at<uchar>(i, j) = 160;
+                    ++e;
+            }
             else
             {
-            	output.at<uchar>(i,j) = 130;
+            	output.at<uchar>(i,j) = 255;
+            	++f;
             }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -613,6 +628,14 @@ void nLvlTrsh( const Mat& input, Mat& output )
             // }
         }
     }
+
+    v.push_back(a/o);
+    v.push_back(b/o);
+    v.push_back(c/o);
+    v.push_back(d/o);
+    v.push_back(e/o);
+    v.push_back(f/o);
+    return v;
 }
 
 

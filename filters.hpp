@@ -18,9 +18,9 @@
 #define CIRCLETHRESHOLD 220//220
 
 #define HOMOGENITYTHRS 40
-#define HOMOGENITYCOND 60  // more than 80% in confidence interval +- 20 in %'s'
+#define HOMOGENITYCOND 55//60  // more than 80% in confidence interval +- 20 in %'s'
 
-// divergence of max value in rircle detection
+// divergence of max value in circle detection
 #define RADDIVER 1//3
 #define PROXIMITY 51
 #define DISCARDRADIUS 10
@@ -48,6 +48,6 @@ void extractRegion(const cv::Mat& input, cv::Mat& output, int x, int y, int a);
 
 bool checkHomogenity(const cv::Mat& input);
 
-void nLvlTrsh( const cv::Mat& input, cv::Mat& output );
+std::vector<double> nLvlTrsh( const cv::Mat& input, cv::Mat& output );
 
 #endif

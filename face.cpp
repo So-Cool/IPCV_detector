@@ -44,6 +44,7 @@ void detectAndSave( Mat frame )
 {
 
 	// read teemplate
+	// not needed?
 	Mat templat = imread("HoughTemplate.jpg", CV_LOAD_IMAGE_GRAYSCALE);
 	for (int x = 0; x < templat.rows; ++x)
 	{
@@ -654,45 +655,99 @@ void detectAndSave( Mat frame )
 		deleteme.clear();
 	}
 
+	//erase vectpr
+	deleteme.clear();	
+
 	// check what is inside squares
 	for (int i = 0; i < brightSquares.size(); ++i)
 	{
-		extractRegion(original, tmp, brightSquares[i].x, brightSquares[i].y, brightSquares[i].width);
+		extractRegion(original, tmp, brightSquares[i].x, brightSquares[i].y, brightSquares[i].width);//original
+		// threshold(tmp, tmp, 0, 255, THRESH_BINARY+ THRESH_OTSU);
+		std::vector<double> v = nLvlTrsh(tmp, tmp);
+		// if (!(v[0] > 0.1 && v[1] >0.1) && !(v[4]+v[5]>0.6))
+		{
+			for (int g = 0; g < 6; ++g)
+			{
+				cout << "laisla bonita: " << v[g] << endl;
+			}
+			cout << "=================================" << endl;
+			imshow("extLineEx", tmp);
+			waitKey();
+		}
+		// adaptiveThreshold(tmp, tmp, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY_INV,3,3);
+		// imshow("extLineEx", tmp);
+		// waitKey();
+		// medianBlur(tmp, tmp, 3);
 		// Canny(tmp, tmp, 50, 200, 3);
 		// imshow("ext", tmp);
 		// waitKey();
-		sobel(tmp, line_xDeriv, line_yDeriv, line_grad, line_arc);//original
+		// nLvlTrsh(tmp, tmp);
+		// cout << checkHomogenity(tmp) << endl;
+		// sobel(tmp, line_xDeriv, line_yDeriv, line_grad, line_arc);//original
 		// detectLines(line_grad, line_arc, tmp);
-		for (int x = 0; x < tmp.rows; ++x)
-		{
-			for (int y = 0; y < tmp.cols; ++y)
-			{
-				if (tmp.at<uchar>(x,y) < CIRCLETHRESHOLD)//220 pretty good
-				{
-					tmp.at<uchar>(x,y) = 0 ;
-				}
-				// else {
-				// 	tmp.at<uchar>(x,y) = 255  ;
-				// }
-			}
-		}
-		detectCircles(line_grad, line_arc, tmp);
-		for (int x = 0; x < tmp.rows; ++x)
-		{
-			for (int y = 0; y < tmp.cols; ++y)
-			{
-				if (tmp.at<uchar>(x,y) < CIRCLETHRESHOLD)//220 pretty good
-				{
-					tmp.at<uchar>(x,y) = 0  ;
-				}
-				else {
-					tmp.at<uchar>(x,y) = 255  ;
-				}
-			}
-		}
+		// detectCircles(line_grad, line_arc, tmp);
 		// mexHat(tmp, tmp);
-		imshow("extLine", tmp);
-		waitKey();
+		// imshow("extLineEx", tmp);
+		// waitKey();
+
+		// for (int x = 0; x < tmp.rows; ++x)
+		// {
+		// 	for (int y = 0; y < tmp.cols; ++y)
+		// 	{
+		// 		if (tmp.at<uchar>(x,y) < LINETHRESHOLD-120)//220 pretty good
+		// 		{
+		// 			tmp.at<uchar>(x,y) = 0 ;
+		// 		}
+		// 		else {
+		// 			tmp.at<uchar>(x,y) = 255  ;
+		// 		}
+		// 	}
+		// }
+
+		// int white = 0;
+		// for (int x = 0; x < tmp.rows; ++x)
+		// {
+		// 	for (int y = 0; y < tmp.cols; ++y)
+		// 	{
+		// 		// if (255 == templat.at<uchar>(x,y) && tmp.at<uchar>(x,y) == 255 )
+		// 		if(tmp.at<uchar>(x,y) > 200)
+		// 		{
+		// 			// tmp.at<uchar>(x,y) = 255;
+		// 			white++;
+		// 		}
+		// 	}
+		// }
+
+		// cout << "Whites: " << white << endl;
+		if ((v[0] > 0.1 && v[1] >0.1) || (v[4]+v[5]>0.6))
+		{
+			//not a circle
+			deleteme.push_back(i);
+		}
+
+
+
+		// detectCircles(line_grad, line_arc, tmp);
+		// for (int x = 0; x < tmp.rows; ++x)
+		// {
+		// 	for (int y = 0; y < tmp.cols; ++y)
+		// 	{
+		// 		if (tmp.at<uchar>(x,y) < CIRCLETHRESHOLD)//220 pretty good
+		// 		{
+		// 			tmp.at<uchar>(x,y) = 0  ;
+		// 		}
+		// 		else {
+		// 			tmp.at<uchar>(x,y) = 255  ;
+		// 		}
+		// 	}
+		// }
+		// mexHat(tmp, tmp);
+		// imshow("extLine", tmp);
+		// waitKey();
+	}
+	for (int k = deleteme.size()-1; k >=0 ; --k)
+	{
+		brightSquares.erase(brightSquares.begin()+deleteme[k]);
 	}
 
 
