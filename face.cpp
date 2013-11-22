@@ -254,41 +254,6 @@ void detectAndSave( Mat frame )
 	}
 
 
-	// cout << "ile loli: " << lol << endl;
-	// for (int i = 0; i < temp8Bit.rows; ++i)
-	// {
-	// 	for (int j = 0; j < temp8Bit.cols; ++j)
-	// 	{
-	// 		tempmax = temp8Bit.at<uchar>(i,j);
-	// 		if (tempmax == vmax)
-	// 		{
-	// 			// push coordinates to vector
-				
-	// 		}
-	// 	}
-	// }
-
-	// typedef std::vector<cv::Point>::iterator PointIter;
-	// tempmax = 0;
-	// for(PointIter it = brightSpots.begin(); it != brightSpots.end(); ++it)
-	// {
-	// 	cv::Point p = *it;
-	// 	for (int r = RMIN; r < RMAX; ++r)
-	// 	{
-	// 		if (roundShapes[p.x][p.y][r] > tempmax - RADDIVER )
-	// 		{
-	// 			if(r>radmax)
-	// 			{
-	// 				tempmax = roundShapes[p.x][p.y][r];
-	// 				rowsmax = p.x;
-	// 				colsmax = p.y;
-	// 				radmax = r;
-	// 			}
-	// 		}
-	// 	}
-	// }
-
-
 
 
 	// Blur the image to smooth the noise
@@ -317,53 +282,88 @@ void detectAndSave( Mat frame )
 
 	for( int i = 0; i < faces.size(); i++ )
 	{
-		extractRegion(original, tmp, faces[i].x, faces[i].y, faces[i].width);
-		Canny(tmp, tmp, 50, 200, 3);
-		// imshow("ext", tmp);
-		// waitKey();
+
+		extractRegion(darken, tmp, faces[i].x, faces[i].y, faces[i].width);//original
+
+		if(checkHomogenity(tmp))//size matters
+			continue;
+
+		// Canny(tmp, tmp, 50, 200, 3);
+		imshow("ext", tmp);
+		waitKey();
 		sobel(tmp, line_xDeriv, line_yDeriv, line_grad, line_arc);//original
-		detectLines(line_grad, line_arc, tmp);
-		// mexHat(tmp, tmp);
-		// imshow("extLine", tmp);
-		// waitKey();
+		// detectLines(line_grad, line_arc, tmp);
+
+
+		for (int x = 0; x < tmp.rows; ++x)
+		{
+			for (int y = 0; y < tmp.cols; ++y)
+			{
+				if (tmp.at<uchar>(x,y) >160)//220 pretty good
+				{
+					tmp.at<uchar>(x,y) = 255  ;
+				}
+				else {
+					tmp.at<uchar>(x,y) = 0  ;
+				}
+			}
+		}
+
+
+		detectCircles(line_grad, line_arc, tmp);
+
+		for (int x = 0; x < tmp.rows; ++x)
+		{
+			for (int y = 0; y < tmp.cols; ++y)
+			{
+				if (tmp.at<uchar>(x,y) < CIRCLETHRESHOLD)//220 pretty good
+				{
+					tmp.at<uchar>(x,y) = 0  ;
+				}
+			}
+		}
+
+		mexHat(tmp, tmp);
+		imshow("extLine", tmp);
+		waitKey();
 		// if(!checkHomogenity(tmp))
 
 		rectangle(frame, Point(faces[i].x, faces[i].y), Point(faces[i].x + faces[i].width, faces[i].y + faces[i].height), Scalar( 0, 255, 0 ), 2);
 	}
-	for( int i = 0; i < faces1.size(); i++ )
-	{
+	// for( int i = 0; i < faces1.size(); i++ )
+	// {
 
 
-		extractRegion(original, tmp, faces1[i].x, faces1[i].y, faces1[i].width);
-		Canny(tmp, tmp, 50, 200, 3);
-		// imshow("ext", tmp);
-		// waitKey();
-		sobel(tmp, line_xDeriv, line_yDeriv, line_grad, line_arc);//original
-		detectLines(line_grad, line_arc, tmp);
-		// mexHat(tmp, tmp);
-		// imshow("extLine", tmp);
-		// waitKey();
-		// if(!checkHomogenity(tmp))
+	// 	extractRegion(original, tmp, faces1[i].x, faces1[i].y, faces1[i].width);
+	// 	Canny(tmp, tmp, 50, 200, 3);
+	// 	imshow("ext", tmp);
+	// 	waitKey();
+	// 	sobel(tmp, line_xDeriv, line_yDeriv, line_grad, line_arc);//original
+	// 	detectLines(line_grad, line_arc, tmp);
+	// 	// mexHat(tmp, tmp);
+	// 	imshow("extLine", tmp);
+	// 	waitKey();
+	// 	// if(!checkHomogenity(tmp))
 
-	rectangle(frame, Point(faces1[i].x, faces1[i].y), Point(faces1[i].x + faces1[i].width, faces1[i].y + faces1[i].height), Scalar( 0, 0, 255 ), 2);
-	}
-	for( int i = 0; i < faces2.size(); i++ )
-	{
+	// rectangle(frame, Point(faces1[i].x, faces1[i].y), Point(faces1[i].x + faces1[i].width, faces1[i].y + faces1[i].height), Scalar( 0, 0, 255 ), 2);
+	// }
+	// for( int i = 0; i < faces2.size(); i++ )
+	// {
 
-		extractRegion(original, tmp, faces2[i].x, faces2[i].y, faces2[i].width);
-		Canny(tmp, tmp, 50, 200, 3);
-		// imshow("ext", tmp);
-		// waitKey();
-		sobel(tmp, line_xDeriv, line_yDeriv, line_grad, line_arc);//original
-		detectLines(line_grad, line_arc, tmp);
-		// mexHat(tmp, tmp);
-		// imshow("extLine", tmp);
-		// waitKey();
-		// if(!checkHomogenity(tmp))
+	// 	extractRegion(original, tmp, faces2[i].x, faces2[i].y, faces2[i].width);
+	// 	Canny(tmp, tmp, 50, 200, 3);
+	// 	imshow("ext", tmp);
+	// 	waitKey();
+	// 	sobel(tmp, line_xDeriv, line_yDeriv, line_grad, line_arc);//original
+	// 	detectLines(line_grad, line_arc, tmp);
+	// 	// mexHat(tmp, tmp);
+	// 	imshow("extLine", tmp);
+	// 	waitKey();
+	// 	// if(!checkHomogenity(tmp))
 
 
-	rectangle(frame, Point(faces2[i].x, faces2[i].y), Point(faces2[i].x + faces2[i].width, faces2[i].y + faces2[i].height), Scalar( 255, 255, 0 ), 2);
-	}
+	// rectangle(frame, Point(faces2[i].x, faces2[i].y), Point(faces2[i].x + faces2[i].width, faces2[i].y + faces2[i].height), Scalar( 255, 255, 0 ), 2);
+	// }
 
 	//-- Save what you got
 	imshow("output",frame);
