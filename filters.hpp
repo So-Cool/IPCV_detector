@@ -29,6 +29,8 @@
 
 #define SQUARETHRESHOLD 20
 
+#define DELETECIRCLE 65
+
 #define SHOW 0
 
 void sharpen(cv::Mat &input, int size, cv::Mat &out);

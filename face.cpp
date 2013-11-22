@@ -42,6 +42,30 @@ int main( int argc, const char** argv )
 /** @function detectAndSave */
 void detectAndSave( Mat frame )
 {
+
+	// read teemplate
+	Mat templat = imread("HoughTemplate.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+	for (int x = 0; x < templat.rows; ++x)
+	{
+		for (int y = 0; y < templat.cols; ++y)
+		{
+			// black if the same
+			if (templat.at<uchar>(x,y) < 125)
+			{
+				templat.at<uchar>(x,y) = 0;
+			}
+			//white if different
+			else
+			{
+				templat.at<uchar>(x,y) = 255;
+			}
+		}
+	}
+	// imshow("test",templat);
+	// waitKey();
+
+
+
 	std::vector<Rect> faces, faces1, faces2, brightSquares;
 	Mat frame_gray;
 
@@ -145,6 +169,9 @@ void detectAndSave( Mat frame )
 
 	// int lol = 0;
 
+	vector<int> deleteme;
+
+
 	std::vector<cv::Point> brightSpots;
 	std::vector<int> brightR;
 	std::vector<int> brightValue;
@@ -243,6 +270,97 @@ void detectAndSave( Mat frame )
 	}
 
 
+	// delete redundant circles by inspecting interior
+	Mat extCRC, extCRC_xDeriv, extCRC_yDeriv, extCRC_grad, extCRC_arc;
+	for (int i = 0; i < brightSpots.size(); ++i)
+	{
+		extractRegion(original, extCRC, brightSpots[i].y- brightR[i], brightSpots[i].x- brightR[i], brightR[i]*2);//darkened
+
+		// imshow("CICLExt", extCRC);
+		// waitKey();
+
+		// Canny(extCRC, extCRC, 10, 200, 3);
+
+		sobel(extCRC, extCRC_xDeriv, extCRC_yDeriv, extCRC_grad, extCRC_arc);//original
+		detectLines(extCRC_grad, extCRC_arc, extCRC);
+
+		for (int j = 0; j < extCRC.rows; ++j)
+		{
+			for (int k = 0; k < extCRC.cols; ++k)
+			{
+				if (extCRC.at<uchar>(j,k) < LINETHRESHOLD-120)//-120
+				{
+					extCRC.at<uchar>(j,k) = 0;
+				}
+				else
+				{
+					extCRC.at<uchar>(j,k) = 255;
+				}
+			}
+		}
+		// imshow("CICLExt", extCRC);
+		// imwrite( "output.jpg", extCRC );
+		// waitKey();
+
+		//XOR with templat and check whether matched enough
+		// bitwise_xor(templat, extCRC, extCRC);
+		int white = 0;
+		for (int x = 0; x < extCRC.rows; ++x)
+		{
+			for (int y = 0; y < extCRC.cols; ++y)
+			{
+				// // black if the same
+				// if (extCRC.at<uchar>(x,y) == templat.at<uchar>(x,y))
+				// {
+				// 	extCRC.at<uchar>(x,y) = 0;
+				// }
+				// //white if different
+				// else
+				// {
+				// 	extCRC.at<uchar>(x,y) = 255;
+				// }
+
+
+				// template white & 
+				if (255 == templat.at<uchar>(x,y) && extCRC.at<uchar>(x,y) == 255 )
+				{
+					// extCRC.at<uchar>(x,y) = 255;
+					white++;
+				}
+				// else if (255 == templat.at<uchar>(x,y) && extCRC.at<uchar>(x,y) == 0 )
+				// {
+				// 	extCRC.at<uchar>(x,y) = 0;
+				// }
+				// //white if different
+				// else
+				// {
+				// 	extCRC.at<uchar>(x,y) = 0;
+				// }
+
+			}
+		}
+
+		// cout << "Whites: " << white << endl;
+
+		if (white < DELETECIRCLE)
+		{
+			//not a circle
+			deleteme.push_back(i);
+		}
+
+		// imshow("CICLExt", extCRC);
+		// waitKey();
+		// imwrite( "output.jpg", extCRC );
+	}
+
+	//delete gathered circles
+	for (int i = deleteme.size()-1; i >= 0; --i)
+	{
+		brightSpots.erase(brightSpots.begin()+deleteme[i]);	
+	}
+
+
+
 	// print circles
 	for (int i = 0; i < brightSpots.size(); ++i)
 	{
@@ -290,102 +408,52 @@ void detectAndSave( Mat frame )
 		extractRegion(darken, tmp, faces[i].x, faces[i].y, faces[i].width);
 		if(checkHomogenity(tmp))//size matters
 			continue;
-		//circle in a square? Don't print it!
-		// if (brightSpots.size() == 1)
-		// {
-		// 	if (brightSpots[0].y > faces[i].x && brightSpots[0].y < faces[i].x+faces[i].width
-		// 		&& brightSpots[0].x > faces[i].y && brightSpots[0].x < faces[i].y+faces[i].height )
-		// 	{
-		// 		continue;
-		// 	}
-		// }
-		// else
-		// {
-			for (int j = 0; j < brightSpots.size(); ++j)
-			{
-				if (brightSpots[j].y > faces[i].x && brightSpots[j].y < faces[i].x+faces[i].width
-					&& brightSpots[j].x > faces[i].y && brightSpots[j].x < faces[i].y+faces[i].height )
-				{
-					breakable = true;
-					break;
-				}
 
-				// if one of vertices of square is in the circle delete it
-				// REMEMBER THAT FIRST DELETE REDUNDANT CIRCLES:
-				//top-left
-				if (faces[i].x < brightSpots[j].y + brightR[j] && faces[i].x > brightSpots[j].y - brightR[j] && //horizontal lining
-					faces[i].y > brightSpots[j].x - brightR[j] && faces[i].y < brightSpots[j].x + brightR[j] ) //vertical lining
-				{
-					breakable = true;
-					break;
-				}
-				//top-right
-				else if (faces[i].x < brightSpots[j].y + brightR[j] && faces[i].x > brightSpots[j].y - brightR[j] && //horizontal lining
-					faces[i].y + faces[i].width > brightSpots[j].x - brightR[j] && faces[i].y + faces[i].width < brightSpots[j].x + brightR[j] ) //vertical lining
-				{
-					breakable = true;
-					break;
-				}
-				//bottom-right
-				else if (faces[i].x + faces[i].height < brightSpots[j].y + brightR[j] && faces[i].x + faces[i].height > brightSpots[j].y - brightR[j] && //horizontal lining
-					faces[i].y + faces[i].width > brightSpots[j].x - brightR[j] && faces[i].y + faces[i].width < brightSpots[j].x + brightR[j] ) //vertical lining
-				{
-					breakable = true;
-					break;
-				}
-				//bottom-left
-				else if (faces[i].x + faces[i].height < brightSpots[j].y + brightR[j] && faces[i].x + faces[i].height > brightSpots[j].y - brightR[j] && //horizontal lining
-					faces[i].y > brightSpots[j].x - brightR[j] && faces[i].y < brightSpots[j].x + brightR[j] ) //vertical lining
-				{
-					breakable = true;
-					break;
-				}
+		for (int j = 0; j < brightSpots.size(); ++j)
+		{
+			if (brightSpots[j].y > faces[i].x && brightSpots[j].y < faces[i].x+faces[i].width
+				&& brightSpots[j].x > faces[i].y && brightSpots[j].x < faces[i].y+faces[i].height )
+			{
+				breakable = true;
+				break;
+			}
+
+			// if one of vertices of square is in the circle delete it
+			// REMEMBER THAT FIRST DELETE REDUNDANT CIRCLES:
+			//top-left
+			if (faces[i].x < brightSpots[j].y + brightR[j] && faces[i].x > brightSpots[j].y - brightR[j] && //horizontal lining
+				faces[i].y > brightSpots[j].x - brightR[j] && faces[i].y < brightSpots[j].x + brightR[j] ) //vertical lining
+			{
+				breakable = true;
+				break;
+			}
+			//top-right
+			else if (faces[i].x < brightSpots[j].y + brightR[j] && faces[i].x > brightSpots[j].y - brightR[j] && //horizontal lining
+				faces[i].y + faces[i].width > brightSpots[j].x - brightR[j] && faces[i].y + faces[i].width < brightSpots[j].x + brightR[j] ) //vertical lining
+			{
+				breakable = true;
+				break;
+			}
+			//bottom-right
+			else if (faces[i].x + faces[i].height < brightSpots[j].y + brightR[j] && faces[i].x + faces[i].height > brightSpots[j].y - brightR[j] && //horizontal lining
+				faces[i].y + faces[i].width > brightSpots[j].x - brightR[j] && faces[i].y + faces[i].width < brightSpots[j].x + brightR[j] ) //vertical lining
+			{
+				breakable = true;
+				break;
+			}
+			//bottom-left
+			else if (faces[i].x + faces[i].height < brightSpots[j].y + brightR[j] && faces[i].x + faces[i].height > brightSpots[j].y - brightR[j] && //horizontal lining
+				faces[i].y > brightSpots[j].x - brightR[j] && faces[i].y < brightSpots[j].x + brightR[j] ) //vertical lining
+			{
+				breakable = true;
+				break;
+			}
 
 			}
 			if (breakable)
 			{
 				continue;
-			}
-		// }
-
-
-
-
-
-
-
-		// Canny(tmp, tmp, 50, 200, 3);
-		// imshow("ext", tmp);
-		// waitKey();
-		sobel(tmp, line_xDeriv, line_yDeriv, line_grad, line_arc);//original
-		// detectLines(line_grad, line_arc, tmp);
-		for (int x = 0; x < tmp.rows; ++x)
-		{
-			for (int y = 0; y < tmp.cols; ++y)
-			{
-				if (tmp.at<uchar>(x,y) >160)//220 pretty good
-				{
-					tmp.at<uchar>(x,y) = 255  ;
-				}
-				else {
-					tmp.at<uchar>(x,y) = 0  ;
-				}
-			}
 		}
-		detectCircles(line_grad, line_arc, tmp);
-		for (int x = 0; x < tmp.rows; ++x)
-		{
-			for (int y = 0; y < tmp.cols; ++y)
-			{
-				if (tmp.at<uchar>(x,y) < CIRCLETHRESHOLD)//220 pretty good
-				{
-					tmp.at<uchar>(x,y) = 0  ;
-				}
-			}
-		}
-		mexHat(tmp, tmp);
-		// imshow("extLine", tmp);
-		// waitKey();
 
 		brightSquares.push_back(faces[i]);
 		// rectangle(frame, Point(faces[i].x, faces[i].y), Point(faces[i].x + faces[i].width, faces[i].y + faces[i].height), Scalar( 0, 255, 0 ), 2);
@@ -396,85 +464,62 @@ void detectAndSave( Mat frame )
 		extractRegion(original, tmp, faces1[i].x, faces1[i].y, faces1[i].width);
 		if(checkHomogenity(tmp))//size matters
 			continue;
-		//circle in a square? Don't print it!
-		// if (brightSpots.size() == 1)
-		// {
-		// 	if (brightSpots[0].y > faces1[i].x && brightSpots[0].y < faces1[i].x+faces1[i].width
-		// 		&& brightSpots[0].x > faces1[i].y && brightSpots[0].x < faces1[i].y+faces1[i].height )
-		// 	{
-		// 		continue;
-		// 	}
-		// }
-		// else
-		// {
-			for (int j = 0; j < brightSpots.size(); ++j)
+
+		for (int j = 0; j < brightSpots.size(); ++j)
+		{
+			if (brightSpots[j].y > faces1[i].x && brightSpots[j].y < faces1[i].x+faces1[i].width
+				&& brightSpots[j].x > faces1[i].y && brightSpots[j].x < faces1[i].y+faces1[i].height )
 			{
-				if (brightSpots[j].y > faces1[i].x && brightSpots[j].y < faces1[i].x+faces1[i].width
-					&& brightSpots[j].x > faces1[i].y && brightSpots[j].x < faces1[i].y+faces1[i].height )
-				{
-					breakable = true;
-					break;
-				}
-
-
-				// if one of vertices of square is in the circle delete it
-				// REMEMBER THAT FIRST DELETE REDUNDANT CIRCLES:
-				//top-left
-				if (faces1[i].x < brightSpots[j].y + brightR[j] && faces1[i].x > brightSpots[j].y - brightR[j] && //horizontal lining
-					faces1[i].y > brightSpots[j].x - brightR[j] && faces1[i].y < brightSpots[j].x + brightR[j] ) //vertical lining
-				{
-					breakable = true;
-					break;
-				}
-				//top-right
-				else if (faces1[i].x < brightSpots[j].y + brightR[j] && faces1[i].x > brightSpots[j].y - brightR[j] && //horizontal lining
-					faces1[i].y + faces1[i].width > brightSpots[j].x - brightR[j] && faces1[i].y + faces1[i].width < brightSpots[j].x + brightR[j] ) //vertical lining
-				{
-					breakable = true;
-					break;
-				}
-				//bottom-right
-				else if (faces1[i].x + faces1[i].height < brightSpots[j].y + brightR[j] && faces1[i].x + faces1[i].height > brightSpots[j].y - brightR[j] && //horizontal lining
-					faces1[i].y + faces1[i].width > brightSpots[j].x - brightR[j] && faces1[i].y + faces1[i].width < brightSpots[j].x + brightR[j] ) //vertical lining
-				{
-					breakable = true;
-					break;
-				}
-				//bottom-left
-				else if (faces1[i].x + faces1[i].height < brightSpots[j].y + brightR[j] && faces1[i].x + faces1[i].height > brightSpots[j].y - brightR[j] && //horizontal lining
-					faces1[i].y > brightSpots[j].x - brightR[j] && faces1[i].y < brightSpots[j].x + brightR[j] ) //vertical lining
-				{
-					breakable = true;
-					break;
-				}
-
-
+				breakable = true;
+				break;
 			}
-			if (breakable)
+
+
+			// if one of vertices of square is in the circle delete it
+			// REMEMBER THAT FIRST DELETE REDUNDANT CIRCLES:
+			//top-left
+			if (faces1[i].x < brightSpots[j].y + brightR[j] && faces1[i].x > brightSpots[j].y - brightR[j] && //horizontal lining
+				faces1[i].y > brightSpots[j].x - brightR[j] && faces1[i].y < brightSpots[j].x + brightR[j] ) //vertical lining
 			{
-				continue;
+				breakable = true;
+				break;
 			}
-		// }
+			//top-right
+			else if (faces1[i].x < brightSpots[j].y + brightR[j] && faces1[i].x > brightSpots[j].y - brightR[j] && //horizontal lining
+				faces1[i].y + faces1[i].width > brightSpots[j].x - brightR[j] && faces1[i].y + faces1[i].width < brightSpots[j].x + brightR[j] ) //vertical lining
+			{
+				breakable = true;
+				break;
+			}
+			//bottom-right
+			else if (faces1[i].x + faces1[i].height < brightSpots[j].y + brightR[j] && faces1[i].x + faces1[i].height > brightSpots[j].y - brightR[j] && //horizontal lining
+				faces1[i].y + faces1[i].width > brightSpots[j].x - brightR[j] && faces1[i].y + faces1[i].width < brightSpots[j].x + brightR[j] ) //vertical lining
+			{
+				breakable = true;
+				break;
+			}
+			//bottom-left
+			else if (faces1[i].x + faces1[i].height < brightSpots[j].y + brightR[j] && faces1[i].x + faces1[i].height > brightSpots[j].y - brightR[j] && //horizontal lining
+				faces1[i].y > brightSpots[j].x - brightR[j] && faces1[i].y < brightSpots[j].x + brightR[j] ) //vertical lining
+			{
+				breakable = true;
+				break;
+			}
 
 
-
-
-
-		Canny(tmp, tmp, 50, 200, 3);
-		// imshow("ext", tmp);
-		// waitKey();
-		sobel(tmp, line_xDeriv, line_yDeriv, line_grad, line_arc);//original
-		detectLines(line_grad, line_arc, tmp);
-		// mexHat(tmp, tmp);
-		// imshow("extLine", tmp);
-		// waitKey();
+		}
+		if (breakable)
+		{
+			continue;
+		}
 
 		brightSquares.push_back(faces1[i]);
 		// rectangle(frame, Point(faces1[i].x, faces1[i].y), Point(faces1[i].x + faces1[i].width, faces1[i].y + faces1[i].height), Scalar( 0, 0, 255 ), 2);
 	}
 
 	//delete overlapping squares
-	vector<int> deleteme;
+	//erase vectpr
+	deleteme.clear();
 
 	for (int j = 0; j < brightSquares.size(); ++j)
 	{
@@ -607,6 +652,47 @@ void detectAndSave( Mat frame )
 		}
 		//erase vectpr
 		deleteme.clear();
+	}
+
+	// check what is inside squares
+	for (int i = 0; i < brightSquares.size(); ++i)
+	{
+		extractRegion(original, tmp, brightSquares[i].x, brightSquares[i].y, brightSquares[i].width);
+		// Canny(tmp, tmp, 50, 200, 3);
+		// imshow("ext", tmp);
+		// waitKey();
+		sobel(tmp, line_xDeriv, line_yDeriv, line_grad, line_arc);//original
+		// detectLines(line_grad, line_arc, tmp);
+		for (int x = 0; x < tmp.rows; ++x)
+		{
+			for (int y = 0; y < tmp.cols; ++y)
+			{
+				if (tmp.at<uchar>(x,y) < CIRCLETHRESHOLD)//220 pretty good
+				{
+					tmp.at<uchar>(x,y) = 0 ;
+				}
+				// else {
+				// 	tmp.at<uchar>(x,y) = 255  ;
+				// }
+			}
+		}
+		detectCircles(line_grad, line_arc, tmp);
+		for (int x = 0; x < tmp.rows; ++x)
+		{
+			for (int y = 0; y < tmp.cols; ++y)
+			{
+				if (tmp.at<uchar>(x,y) < CIRCLETHRESHOLD)//220 pretty good
+				{
+					tmp.at<uchar>(x,y) = 0  ;
+				}
+				else {
+					tmp.at<uchar>(x,y) = 255  ;
+				}
+			}
+		}
+		// mexHat(tmp, tmp);
+		imshow("extLine", tmp);
+		waitKey();
 	}
 
 

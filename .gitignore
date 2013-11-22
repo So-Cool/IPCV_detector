@@ -26,7 +26,9 @@ darts_o/02
 training/beztarczy.png
 darts_o/Archiwum 2.zip
 darts_o/Archiwum.zip
-
+HoughTemplate_old.jpg
+darts_o/hough/
+haff_template.jpg
 
 # LaTeX
 report/*.aux
