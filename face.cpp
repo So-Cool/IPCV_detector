@@ -275,6 +275,9 @@ void detectAndSave( Mat frame )
 	logo_cascade.detectMultiScale( gaussianB1, faces2, 1.1, 1, 0|CV_HAAR_SCALE_IMAGE, Size(50, 50), Size(500,500) ); //blurred
 	std::cout << faces.size() + faces1.size() + faces2.size() << std::endl;
 
+	// faces.insert( faces.end(), faces1.begin(), faces1.end() );
+	// faces.insert( faces.end(), faces2.begin(), faces2.end() );
+	faces1.insert( faces1.end(), faces2.begin(), faces2.end() );
 	Mat tmp;
 
 	// lines
@@ -282,9 +285,7 @@ void detectAndSave( Mat frame )
 
 	for( int i = 0; i < faces.size(); i++ )
 	{
-
-		extractRegion(darken, tmp, faces[i].x, faces[i].y, faces[i].width);//original
-
+		extractRegion(darken, tmp, faces[i].x, faces[i].y, faces[i].width);//original//darken
 		if(checkHomogenity(tmp))//size matters
 			continue;
 
@@ -293,8 +294,6 @@ void detectAndSave( Mat frame )
 		waitKey();
 		sobel(tmp, line_xDeriv, line_yDeriv, line_grad, line_arc);//original
 		// detectLines(line_grad, line_arc, tmp);
-
-
 		for (int x = 0; x < tmp.rows; ++x)
 		{
 			for (int y = 0; y < tmp.cols; ++y)
@@ -308,10 +307,7 @@ void detectAndSave( Mat frame )
 				}
 			}
 		}
-
-
 		detectCircles(line_grad, line_arc, tmp);
-
 		for (int x = 0; x < tmp.rows; ++x)
 		{
 			for (int y = 0; y < tmp.cols; ++y)
@@ -322,42 +318,15 @@ void detectAndSave( Mat frame )
 				}
 			}
 		}
-
 		mexHat(tmp, tmp);
 		imshow("extLine", tmp);
 		waitKey();
-		// if(!checkHomogenity(tmp))
 
 		rectangle(frame, Point(faces[i].x, faces[i].y), Point(faces[i].x + faces[i].width, faces[i].y + faces[i].height), Scalar( 0, 255, 0 ), 2);
 	}
 	for( int i = 0; i < faces1.size(); i++ )
 	{
-
-
 		extractRegion(original, tmp, faces1[i].x, faces1[i].y, faces1[i].width);
-
-		if(checkHomogenity(tmp))//size matters
-			continue;
-
-
-		Canny(tmp, tmp, 50, 200, 3);
-		imshow("ext", tmp);
-		waitKey();
-		sobel(tmp, line_xDeriv, line_yDeriv, line_grad, line_arc);//original
-		detectLines(line_grad, line_arc, tmp);
-		// mexHat(tmp, tmp);
-		imshow("extLine", tmp);
-		waitKey();
-		// if(!checkHomogenity(tmp))
-
-	rectangle(frame, Point(faces1[i].x, faces1[i].y), Point(faces1[i].x + faces1[i].width, faces1[i].y + faces1[i].height), Scalar( 0, 0, 255 ), 2);
-	}
-	for( int i = 0; i < faces2.size(); i++ )
-	{
-
-		extractRegion(original, tmp, faces2[i].x, faces2[i].y, faces2[i].width);
-
-
 		if(checkHomogenity(tmp))//size matters
 			continue;
 
@@ -369,81 +338,30 @@ void detectAndSave( Mat frame )
 		// mexHat(tmp, tmp);
 		imshow("extLine", tmp);
 		waitKey();
-		// if(!checkHomogenity(tmp))
 
-
-	rectangle(frame, Point(faces2[i].x, faces2[i].y), Point(faces2[i].x + faces2[i].width, faces2[i].y + faces2[i].height), Scalar( 255, 255, 0 ), 2);
+		rectangle(frame, Point(faces1[i].x, faces1[i].y), Point(faces1[i].x + faces1[i].width, faces1[i].y + faces1[i].height), Scalar( 0, 0, 255 ), 2);
 	}
+	// for( int i = 0; i < faces2.size(); i++ )
+	// {
+	// 	extractRegion(original, tmp, faces2[i].x, faces2[i].y, faces2[i].width);
+	// 	if(checkHomogenity(tmp))//size matters
+	// 		continue;
+
+	// 	Canny(tmp, tmp, 50, 200, 3);
+	// 	imshow("ext", tmp);
+	// 	waitKey();
+	// 	sobel(tmp, line_xDeriv, line_yDeriv, line_grad, line_arc);//original
+	// 	detectLines(line_grad, line_arc, tmp);
+	// 	// mexHat(tmp, tmp);
+	// 	imshow("extLine", tmp);
+	// 	waitKey();
+
+	// 	rectangle(frame, Point(faces2[i].x, faces2[i].y), Point(faces2[i].x + faces2[i].width, faces2[i].y + faces2[i].height), Scalar( 255, 255, 0 ), 2);
+	// }
 
 	//-- Save what you got
 	imshow("output",frame);
 	waitKey();
 	imwrite( "output.jpg", frame );
-
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-	// // Adoptive thresholding
-	// Mat thresholded(frame_gray.rows, frame_gray.cols, CV_8U, cv::Scalar::all(0));
-	// nLvlTrsh(frame_gray, thresholded);
-	// imshow("Thrsh", thresholded);
-	// waitKey();
-
-
-	// threshold to produce solid black(remove shades)
-	// for(int i = 0; i < frame_gray.rows; ++i)
-	// {
-	// 	for (int j = 0; j < frame_gray.cols; ++j)
-	// 	{
-	// 		uchar tr = frame_gray.at<uchar>(i, j);
-	// 		if(tr < 75)
-	// 		{
-	// 			frame_gray.at<uchar>(i, j) = 0 ;
-	// 		}
-
-	// 	}
-	// }
-	// if(SHOW) imshow("prev",frame_gray);
-	// if(SHOW) waitKey();
-
-
-	//detect lines
-	// cv::Mat xDeriv, yDeriv, grad_ory, grad_trs, arc_ory, arc_trs, output, out2, outcirc ;//frame_gray
-	// sobel(darken, xDeriv, yDeriv, grad_ory, arc_ory);//original
-	// sobel(original, xDeriv, yDeriv, grad_trs, arc_trs);//original
-	// detectCircles(grad_ory, arc_ory, outcirc);
-	// detectLines(grad_trs, arc_trs, output);
-	//detect lines only in circle with adaptive threshold
-	//in selectedby circles regionns look for line hough spectrum similar to the one of dartboard.bmp
-	//najlepiej zrob thersholiding and XOR
-	// extractRegion(original, out2, 50, 50, 20);
-	// if (checkHomogenity(original)) cout<<"homogeneous" << endl;
-	// else cout<<"IN-homogeneous"<<endl;
-
-
-////////////////////////////////////////////////////////////////////////////////
-	// cv::Mat temp8Bit;
-	// cv::normalize(outcirc, temp8Bit, 0, 255, cv::NORM_MINMAX);
-	// temp8Bit.convertTo(outcirc, CV_8U);
-	// for (int i = 0; i < outcirc.rows; ++i)
-	// {
-	// 	for (int j = 0; j < outcirc.cols; ++j)
-	// 	{
-	// 		if (outcirc.at<uchar>(i,j) < CIRCLETHRESHOLD)//220 pretty good
-	// 		{
-	// 			outcirc.at<uchar>(i,j) = 0  ;
-	// 		}
-	// 	}
-	// }
-	// mexHat(outcirc, output);
-	// imshow("mex", output);
-	// waitKey();
-////////////////////////////////////////////////////////////////////////////////
 
 }
