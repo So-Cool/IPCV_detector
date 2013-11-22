@@ -27,6 +27,8 @@
 //maximum number of circles per image
 #define MAXCIRCNO 3
 
+#define SQUARETHRESHOLD 15
+
 #define SHOW 0
 
 void sharpen(cv::Mat &input, int size, cv::Mat &out);

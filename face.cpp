@@ -42,7 +42,7 @@ int main( int argc, const char** argv )
 /** @function detectAndSave */
 void detectAndSave( Mat frame )
 {
-	std::vector<Rect> faces, faces1, faces2;
+	std::vector<Rect> faces, faces1, faces2, brightSquares;
 	Mat frame_gray;
 
 
@@ -282,16 +282,81 @@ void detectAndSave( Mat frame )
 
 	// lines
 	cv::Mat line_xDeriv, line_yDeriv, line_grad, line_arc;
+	bool breakable = false;
 
 	for( int i = 0; i < faces.size(); i++ )
 	{
-		extractRegion(darken, tmp, faces[i].x, faces[i].y, faces[i].width);//original//darken
+		breakable = false;
+		extractRegion(darken, tmp, faces[i].x, faces[i].y, faces[i].width);
 		if(checkHomogenity(tmp))//size matters
 			continue;
+		//circle in a square? Don't print it!
+		// if (brightSpots.size() == 1)
+		// {
+		// 	if (brightSpots[0].y > faces[i].x && brightSpots[0].y < faces[i].x+faces[i].width
+		// 		&& brightSpots[0].x > faces[i].y && brightSpots[0].x < faces[i].y+faces[i].height )
+		// 	{
+		// 		continue;
+		// 	}
+		// }
+		// else
+		// {
+			for (int j = 0; j < brightSpots.size(); ++j)
+			{
+				if (brightSpots[j].y > faces[i].x && brightSpots[j].y < faces[i].x+faces[i].width
+					&& brightSpots[j].x > faces[i].y && brightSpots[j].x < faces[i].y+faces[i].height )
+				{
+					breakable = true;
+					break;
+				}
+
+				// if one of vertices of square is in the circle delete it
+				// REMEMBER THAT FIRST DELETE REDUNDANT CIRCLES:
+				//top-left
+				if (faces[i].x < brightSpots[j].y + brightR[j] && faces[i].x > brightSpots[j].y - brightR[j] && //horizontal lining
+					faces[i].y > brightSpots[j].x - brightR[j] && faces[i].y < brightSpots[j].x + brightR[j] ) //vertical lining
+				{
+					breakable = true;
+					break;
+				}
+				//top-right
+				else if (faces[i].x < brightSpots[j].y + brightR[j] && faces[i].x > brightSpots[j].y - brightR[j] && //horizontal lining
+					faces[i].y + faces[i].width > brightSpots[j].x - brightR[j] && faces[i].y + faces[i].width < brightSpots[j].x + brightR[j] ) //vertical lining
+				{
+					breakable = true;
+					break;
+				}
+				//bottom-right
+				else if (faces[i].x + faces[i].height < brightSpots[j].y + brightR[j] && faces[i].x + faces[i].height > brightSpots[j].y - brightR[j] && //horizontal lining
+					faces[i].y + faces[i].width > brightSpots[j].x - brightR[j] && faces[i].y + faces[i].width < brightSpots[j].x + brightR[j] ) //vertical lining
+				{
+					breakable = true;
+					break;
+				}
+				//bottom-left
+				else if (faces[i].x + faces[i].height < brightSpots[j].y + brightR[j] && faces[i].x + faces[i].height > brightSpots[j].y - brightR[j] && //horizontal lining
+					faces[i].y > brightSpots[j].x - brightR[j] && faces[i].y < brightSpots[j].x + brightR[j] ) //vertical lining
+				{
+					breakable = true;
+					break;
+				}
+
+			}
+			if (breakable)
+			{
+				continue;
+			}
+		// }
+
+
+
+
+
+
 
 		// Canny(tmp, tmp, 50, 200, 3);
-		imshow("ext", tmp);
-		waitKey();
+		// imshow("ext", tmp);
+		// waitKey();
 		sobel(tmp, line_xDeriv, line_yDeriv, line_grad, line_arc);//original
 		// detectLines(line_grad, line_arc, tmp);
 		for (int x = 0; x < tmp.rows; ++x)
@@ -319,49 +384,163 @@ void detectAndSave( Mat frame )
 			}
 		}
 		mexHat(tmp, tmp);
-		imshow("extLine", tmp);
-		waitKey();
+		// imshow("extLine", tmp);
+		// waitKey();
 
-		rectangle(frame, Point(faces[i].x, faces[i].y), Point(faces[i].x + faces[i].width, faces[i].y + faces[i].height), Scalar( 0, 255, 0 ), 2);
+		brightSquares.push_back(faces[i]);
+		// rectangle(frame, Point(faces[i].x, faces[i].y), Point(faces[i].x + faces[i].width, faces[i].y + faces[i].height), Scalar( 0, 255, 0 ), 2);
 	}
 	for( int i = 0; i < faces1.size(); i++ )
 	{
+		breakable = false;
 		extractRegion(original, tmp, faces1[i].x, faces1[i].y, faces1[i].width);
 		if(checkHomogenity(tmp))//size matters
 			continue;
+		//circle in a square? Don't print it!
+		// if (brightSpots.size() == 1)
+		// {
+		// 	if (brightSpots[0].y > faces1[i].x && brightSpots[0].y < faces1[i].x+faces1[i].width
+		// 		&& brightSpots[0].x > faces1[i].y && brightSpots[0].x < faces1[i].y+faces1[i].height )
+		// 	{
+		// 		continue;
+		// 	}
+		// }
+		// else
+		// {
+			for (int j = 0; j < brightSpots.size(); ++j)
+			{
+				if (brightSpots[j].y > faces1[i].x && brightSpots[j].y < faces1[i].x+faces1[i].width
+					&& brightSpots[j].x > faces1[i].y && brightSpots[j].x < faces1[i].y+faces1[i].height )
+				{
+					breakable = true;
+					break;
+				}
+
+
+				// if one of vertices of square is in the circle delete it
+				// REMEMBER THAT FIRST DELETE REDUNDANT CIRCLES:
+				//top-left
+				if (faces1[i].x < brightSpots[j].y + brightR[j] && faces1[i].x > brightSpots[j].y - brightR[j] && //horizontal lining
+					faces1[i].y > brightSpots[j].x - brightR[j] && faces1[i].y < brightSpots[j].x + brightR[j] ) //vertical lining
+				{
+					breakable = true;
+					break;
+				}
+				//top-right
+				else if (faces1[i].x < brightSpots[j].y + brightR[j] && faces1[i].x > brightSpots[j].y - brightR[j] && //horizontal lining
+					faces1[i].y + faces1[i].width > brightSpots[j].x - brightR[j] && faces1[i].y + faces1[i].width < brightSpots[j].x + brightR[j] ) //vertical lining
+				{
+					breakable = true;
+					break;
+				}
+				//bottom-right
+				else if (faces1[i].x + faces1[i].height < brightSpots[j].y + brightR[j] && faces1[i].x + faces1[i].height > brightSpots[j].y - brightR[j] && //horizontal lining
+					faces1[i].y + faces1[i].width > brightSpots[j].x - brightR[j] && faces1[i].y + faces1[i].width < brightSpots[j].x + brightR[j] ) //vertical lining
+				{
+					breakable = true;
+					break;
+				}
+				//bottom-left
+				else if (faces1[i].x + faces1[i].height < brightSpots[j].y + brightR[j] && faces1[i].x + faces1[i].height > brightSpots[j].y - brightR[j] && //horizontal lining
+					faces1[i].y > brightSpots[j].x - brightR[j] && faces1[i].y < brightSpots[j].x + brightR[j] ) //vertical lining
+				{
+					breakable = true;
+					break;
+				}
+
+
+			}
+			if (breakable)
+			{
+				continue;
+			}
+		// }
+
+
+
+
 
 		Canny(tmp, tmp, 50, 200, 3);
-		imshow("ext", tmp);
-		waitKey();
+		// imshow("ext", tmp);
+		// waitKey();
 		sobel(tmp, line_xDeriv, line_yDeriv, line_grad, line_arc);//original
 		detectLines(line_grad, line_arc, tmp);
 		// mexHat(tmp, tmp);
-		imshow("extLine", tmp);
-		waitKey();
+		// imshow("extLine", tmp);
+		// waitKey();
 
-		rectangle(frame, Point(faces1[i].x, faces1[i].y), Point(faces1[i].x + faces1[i].width, faces1[i].y + faces1[i].height), Scalar( 0, 0, 255 ), 2);
+		brightSquares.push_back(faces1[i]);
+		// rectangle(frame, Point(faces1[i].x, faces1[i].y), Point(faces1[i].x + faces1[i].width, faces1[i].y + faces1[i].height), Scalar( 0, 0, 255 ), 2);
 	}
-	// for( int i = 0; i < faces2.size(); i++ )
-	// {
-	// 	extractRegion(original, tmp, faces2[i].x, faces2[i].y, faces2[i].width);
-	// 	if(checkHomogenity(tmp))//size matters
-	// 		continue;
 
-	// 	Canny(tmp, tmp, 50, 200, 3);
-	// 	imshow("ext", tmp);
-	// 	waitKey();
-	// 	sobel(tmp, line_xDeriv, line_yDeriv, line_grad, line_arc);//original
-	// 	detectLines(line_grad, line_arc, tmp);
-	// 	// mexHat(tmp, tmp);
-	// 	imshow("extLine", tmp);
-	// 	waitKey();
+	//delete overlapping squares
+	for (int i = 0; i < brightSquares.size(); ++i)
+	{
+		// if i belongs to other (j) with some margin delete and break
+		for (int j = i+1; j < brightSquares.size(); ++j)
+		{
+			//similar top-left
+			if ( abs( brightSquares[i].x - brightSquares[j].x ) < SQUARETHRESHOLD &&
+				abs( brightSquares[i].y - brightSquares[j].y ) < SQUARETHRESHOLD &&
+				abs( brightSquares[i].x + brightSquares[i].width - brightSquares[j].x -brightSquares[j].width ) < SQUARETHRESHOLD &&
+				abs( brightSquares[i].y + brightSquares[i].height - brightSquares[j].y -brightSquares[j].height ) < SQUARETHRESHOLD )
+			{
+				brightSquares.erase(brightSquares.begin()+ i);
+				break;
+			}
 
-	// 	rectangle(frame, Point(faces2[i].x, faces2[i].y), Point(faces2[i].x + faces2[i].width, faces2[i].y + faces2[i].height), Scalar( 255, 255, 0 ), 2);
-	// }
+
+			// one inside other
+			if ( brightSquares[i].x - brightSquares[j].x > 0 &&
+				brightSquares[i].y - brightSquares[j].y > 0 &&
+				abs( brightSquares[i].width -brightSquares[j].width ) < SQUARETHRESHOLD+20 &&
+				abs( brightSquares[i].height  -brightSquares[j].height ) < SQUARETHRESHOLD+20 )
+			{
+				brightSquares.erase(brightSquares.begin()+ i);
+				break;
+			}
+
+			if ( brightSquares[i].x - brightSquares[j].x > 0 &&
+				brightSquares[i].y - brightSquares[j].y > 0 &&
+				abs( brightSquares[i].x + brightSquares[i].width - brightSquares[j].x -brightSquares[j].width ) < SQUARETHRESHOLD &&
+				abs( brightSquares[i].y + brightSquares[i].height - brightSquares[j].y -brightSquares[j].height ) < SQUARETHRESHOLD )
+			{
+				brightSquares.erase(brightSquares.begin()+ i);
+				break;
+			}
+
+
+			if ( brightSquares[i].x - brightSquares[j].x < 0 &&
+				brightSquares[i].y - brightSquares[j].y < 0 &&
+				abs( brightSquares[i].x + brightSquares[i].width - brightSquares[j].x -brightSquares[j].width ) < SQUARETHRESHOLD &&
+				abs( brightSquares[i].y + brightSquares[i].height - brightSquares[j].y -brightSquares[j].height ) < SQUARETHRESHOLD )
+			{
+				brightSquares.erase(brightSquares.begin()+ j);
+				break;
+			}
+
+			if ( brightSquares[i].x - brightSquares[j].x < 0 &&
+				brightSquares[i].y - brightSquares[j].y < 0 &&
+				abs( brightSquares[i].width -brightSquares[j].width ) < SQUARETHRESHOLD+20 &&
+				abs( brightSquares[i].height  -brightSquares[j].height ) < SQUARETHRESHOLD+20 )
+			{
+				brightSquares.erase(brightSquares.begin()+ j);
+				break;
+			}
+
+		}
+		// rectangle(frame, Point(brightSquares[i].x, brightSquares[i].y), Point(brightSquares[i].x + brightSquares[i].width, brightSquares[i].y + brightSquares[i].height), Scalar( 0, 255, 255 ), 2);
+	}	
+
+	// print detected squares
+	for (int i = 0; i < brightSquares.size(); ++i)
+	{
+		rectangle(frame, Point(brightSquares[i].x, brightSquares[i].y), Point(brightSquares[i].x + brightSquares[i].width, brightSquares[i].y + brightSquares[i].height), Scalar( 0, 255, 255 ), 2);
+	}
 
 	//-- Save what you got
-	imshow("output",frame);
-	waitKey();
+	// imshow("output",frame);
+	// waitKey();
 	imwrite( "output.jpg", frame );
 
 }
