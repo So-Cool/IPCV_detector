@@ -444,7 +444,7 @@ bool checkHomogenity(const Mat& input)
  		d +=  temp.at<double>(i,j);
  	}
  }
-  cout << "d: " << d << " c: " << c << " e: " << e << endl;
+  // cout << "d: " << d << " c: " << c << " e: " << e << endl;
 
 
  d /= c;
@@ -460,7 +460,7 @@ bool checkHomogenity(const Mat& input)
  	}
  }
 
- cout << "d: " << d << " c: " << c << " e: " << e << endl;
+ // cout << "d: " << d << " c: " << c << " e: " << e << endl;
  if (double((double(e)/c)*100) >  HOMOGENITYCOND) return true;
  else return false;
 
