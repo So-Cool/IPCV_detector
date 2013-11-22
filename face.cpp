@@ -476,7 +476,6 @@ void detectAndSave( Mat frame )
 	//delete overlapping squares
 	vector<int> deleteme;
 
-
 	for (int j = 0; j < brightSquares.size(); ++j)
 	{
 		// if i belongs to other (j) with some margin delete and break
@@ -544,9 +543,6 @@ void detectAndSave( Mat frame )
 		deleteme.clear();
 	}
 
-	
-
-
 	for (int j = brightSquares.size()-1; j >=0 ; --j)
 	{
 		// if i belongs to other (j) with some margin delete and break
@@ -602,14 +598,14 @@ void detectAndSave( Mat frame )
 			}
 		}
 		// remove duplicates
-	  std::sort(deleteme.begin(), deleteme.end());
-		  deleteme.erase(std::unique(deleteme.begin(), deleteme.end()), deleteme.end());
+		std::sort(deleteme.begin(), deleteme.end());
+		deleteme.erase(std::unique(deleteme.begin(), deleteme.end()), deleteme.end());
 
 		for (int k = deleteme.size()-1; k >=0 ; --k)
 		{
 			brightSquares.erase(brightSquares.begin()+deleteme[k]);
 		}
-				//erase vectpr
+		//erase vectpr
 		deleteme.clear();
 	}
 
