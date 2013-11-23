@@ -454,7 +454,7 @@ void detectAndSave( Mat frame )
 			if (breakable)
 			{
 				continue;
-		}
+			}
 
 		brightSquares.push_back(faces[i]);
 		// rectangle(frame, Point(faces[i].x, faces[i].y), Point(faces[i].x + faces[i].width, faces[i].y + faces[i].height), Scalar( 0, 255, 0 ), 2);
@@ -575,6 +575,17 @@ void detectAndSave( Mat frame )
 				// break;
 				continue;
 			}
+
+			// //dartboards are most common in rows -- probability prior
+			// for (int l = 0; l < brightSpots.size(); ++l)
+			// {
+			// 	if ( abs(brightSquares[i].y+(0.5*brightSquares[i].width) - brightSpots[l].x) > 100 )
+			// 	{
+			// 		deleteme.push_back(i);
+			// 		continue;
+			// 	}
+			// }
+
 		}
 
 		// remove duplicates
@@ -642,6 +653,20 @@ void detectAndSave( Mat frame )
 				// break;
 				continue;
 			}
+
+			// //dartboards are most common in rows -- probability prior
+			// for (int l = 0; l < brightSpots.size(); ++l)
+			// {
+			// 	if ( abs(brightSquares[i].y+(0.5*brightSquares[i].width) - brightSpots[l].x) > 100 )
+			// 	{
+			// 		deleteme.push_back(i);
+			// 		continue;
+			// 	}
+			// }
+
+
+
+
 		}
 		// remove duplicates
 		std::sort(deleteme.begin(), deleteme.end());
@@ -666,6 +691,8 @@ void detectAndSave( Mat frame )
 		extractRegion(darken, tmpCol, brightSquares[i].x, brightSquares[i].y, brightSquares[i].width);//original
 		// threshold(tmp, tmp, 0, 255, THRESH_BINARY+ THRESH_OTSU);
 		std::vector<double> v = nLvlTrsh(tmp, tmp);
+
+
 
 		// adaptiveThreshold(tmp, tmp, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY_INV,3,3);
 		// imshow("extLineEx", tmp);
@@ -721,6 +748,17 @@ void detectAndSave( Mat frame )
 			continue;
 		}
 
+
+			//dartboards are most common in rows -- probability prior
+			for (int l = 0; l < brightSpots.size(); ++l)
+			{
+				if ( abs(brightSquares[i].y+(0.5*brightSquares[i].width) - brightSpots[l].x) > 75 )
+				{
+					deleteme.push_back(i);
+					break;
+				}
+			}
+
 		// if (!(v[0] > 0.1 && v[1] >0.1 && v[2]<0.1) || !(v[4]+v[4]+v[5]>0.75))
 		// {
 			for (int g = 0; g < 6; ++g)
@@ -744,13 +782,13 @@ void detectAndSave( Mat frame )
 			imshow("lol", abba);
 			waitKey();
 
-		logo_cascade.detectMultiScale( abba, facesSmall, 1.1, 1, 0|CV_HAAR_SCALE_IMAGE, Size(15,15), Size(tmp.cols-15,tmp.cols-15) );
-		for (int x = 0; x < facesSmall.size(); ++x)
-		{
-			rectangle(tmp, Point(facesSmall[i].x, facesSmall[i].y), Point(facesSmall[i].x + facesSmall[i].width, facesSmall[i].y + facesSmall[i].height), Scalar( 0, 255, 255 ), 2);
-		}
+		// logo_cascade.detectMultiScale( abba, facesSmall, 1.1, 1, 0|CV_HAAR_SCALE_IMAGE, Size(15,15), Size(tmp.cols-15,tmp.cols-15) );
+		// for (int x = 0; x < facesSmall.size(); ++x)
+		// {
+		// 	rectangle(tmp, Point(facesSmall[i].x, facesSmall[i].y), Point(facesSmall[i].x + facesSmall[i].width, facesSmall[i].y + facesSmall[i].height), Scalar( 0, 255, 255 ), 2);
+		// }
 
-		cout << "# of points: " << facesSmall.size() << endl;
+		// cout << "# of points: " << facesSmall.size() << endl;
 		// facesSmall.clear();
 		// imshow("maleG", tmp);
 		// waitKey();
