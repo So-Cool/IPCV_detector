@@ -308,9 +308,22 @@ std::vector<std::vector<int> > detectLines(const cv::Mat& grad, const cv::Mat& a
 // void
 std::vector<std::vector<std::vector<int> > > detectCircles(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
 {
+	int radiusmax ;
+
+	if (RMAX <= round(max(grad.rows, grad.cols)/2))
+	{
+		radiusmax = RMAX;
+	}
+	else
+	{
+		radiusmax = round(max(grad.rows, grad.cols)/2);
+	}
+	// cout << "radiusmax: " << radiusmax << endl;
+
+
 	// cv::vector<cv::Vec3d> circles ; //x,y,r
-	// std::vector<std::vector<std::vector<int> > > houghSpace (HOUGHY, std::vector<std::vector<int> > (HOUGHX, std::vector<int>(RMAX-RMIN, 0) ) ) ;
-	std::vector<std::vector<std::vector<int> > > houghSpace (grad.rows, std::vector<std::vector<int> > (grad.cols, std::vector<int>(RMAX-RMIN, 0) ) ) ;
+	// std::vector<std::vector<std::vector<int> > > houghSpace (HOUGHY, std::vector<std::vector<int> > (HOUGHX, std::vector<int>(radiusmax-RMIN, 0) ) ) ;
+	std::vector<std::vector<std::vector<int> > > houghSpace (grad.rows, std::vector<std::vector<int> > (grad.cols, std::vector<int>(radiusmax-RMIN, 0) ) ) ;
 	cv::Mat circleHoughSpace = cv::Mat(grad.rows, grad.cols, CV_64F, cv::Scalar::all(0));
 	// threshold the gradient image after normalization
 	// cv::Mat gradNorm(grad.rows, grad.cols, CV_64F) ;
@@ -323,9 +336,9 @@ std::vector<std::vector<std::vector<int> > > detectCircles(const cv::Mat& grad, 
 			{
 
 				// CIRCLE DETECTION
-				for (int r = RMIN; r < RMAX; ++r)
+				for (int r = RMIN; r < radiusmax; ++r)
 				{
-					//shifted by RMAX to make scaling easier task
+					//shifted by radiusmax to make scaling easier task
 					double x1 = j+r*cos(arc.at<double>(i,j)) ;
 					double x2 = j-r*cos(arc.at<double>(i,j)) ;
 					double y1 = i+r*sin(arc.at<double>(i,j)) ;

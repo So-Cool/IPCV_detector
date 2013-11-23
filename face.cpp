@@ -67,7 +67,7 @@ void detectAndSave( Mat frame )
 
 
 
-	std::vector<Rect> faces, faces1, faces2, brightSquares;
+	std::vector<Rect> faces, faces1, faces2, facesSmall, brightSquares;
 	Mat frame_gray;
 
 
@@ -658,22 +658,15 @@ void detectAndSave( Mat frame )
 	//erase vectpr
 	deleteme.clear();	
 
+	Mat tmpCol;
 	// check what is inside squares
 	for (int i = 0; i < brightSquares.size(); ++i)
 	{
 		extractRegion(original, tmp, brightSquares[i].x, brightSquares[i].y, brightSquares[i].width);//original
+		extractRegion(darken, tmpCol, brightSquares[i].x, brightSquares[i].y, brightSquares[i].width);//original
 		// threshold(tmp, tmp, 0, 255, THRESH_BINARY+ THRESH_OTSU);
 		std::vector<double> v = nLvlTrsh(tmp, tmp);
-		// if (!(v[0] > 0.1 && v[1] >0.1) && !(v[4]+v[5]>0.6))
-		{
-			for (int g = 0; g < 6; ++g)
-			{
-				cout << "laisla bonita: " << v[g] << endl;
-			}
-			cout << "=================================" << endl;
-			imshow("extLineEx", tmp);
-			waitKey();
-		}
+
 		// adaptiveThreshold(tmp, tmp, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY_INV,3,3);
 		// imshow("extLineEx", tmp);
 		// waitKey();
@@ -719,11 +712,73 @@ void detectAndSave( Mat frame )
 		// }
 
 		// cout << "Whites: " << white << endl;
-		if ((v[0] > 0.1 && v[1] >0.1) || (v[4]+v[5]>0.6))
+		if ((v[0] > 0.1 && v[1] >0.1 && v[2]<0.1) || (v[3]+v[4]+v[5]>0.72) ||
+			v[5]>0.55 ||
+			v[0]==0 || v[1]==0 || v[2]==0 || v[3]==0 || v[4]==0 || v[5]==0)
 		{
 			//not a circle
 			deleteme.push_back(i);
+			continue;
 		}
+
+		// if (!(v[0] > 0.1 && v[1] >0.1 && v[2]<0.1) || !(v[4]+v[4]+v[5]>0.75))
+		// {
+			for (int g = 0; g < 6; ++g)
+			{
+				cout << "laisla bonita: " << v[g] << endl;
+			}
+			cout << "=================================" << endl;
+
+
+			// put tmp into big image
+			Mat abba (original.rows, original.cols, CV_8U, cv::Scalar::all(0));
+			int b = (original.rows-tmp.rows)/2;
+			int e =(original.cols-tmp.cols)/2;
+			for (int x = 0; x < tmp.rows; ++x)
+			{
+				for (int y = 0; y < tmp.cols; ++y)
+				{
+					abba.at<uchar>(b+x,e+y) = tmp.at<uchar>(x,y);
+				}
+			}
+			imshow("lol", abba);
+			waitKey();
+
+		logo_cascade.detectMultiScale( abba, facesSmall, 1.1, 1, 0|CV_HAAR_SCALE_IMAGE, Size(15,15), Size(tmp.cols-15,tmp.cols-15) );
+		for (int x = 0; x < facesSmall.size(); ++x)
+		{
+			rectangle(tmp, Point(facesSmall[i].x, facesSmall[i].y), Point(facesSmall[i].x + facesSmall[i].width, facesSmall[i].y + facesSmall[i].height), Scalar( 0, 255, 255 ), 2);
+		}
+
+		cout << "# of points: " << facesSmall.size() << endl;
+		// facesSmall.clear();
+		// imshow("maleG", tmp);
+		// waitKey();
+
+		// }
+
+		// sobel(tmp, line_xDeriv, line_yDeriv, line_grad, line_arc);//original
+		// // detectLines(line_grad, line_arc, tmp);
+		// std::vector<std::vector<std::vector<int> > > shp = detectCircles(line_grad, line_arc, tmp);
+		// mexHat(tmp, tmp);
+		// for (int x = 0; x < tmp.rows; ++x)
+		// {
+		// 	for (int y = 0; y < tmp.rows; ++y)
+		// 	{
+		// 		if (tmp.at<uchar>(x,y) == 255)
+		// 		{
+		// 			for (int r = 0; r < shp[x][y].size()-RMIN; ++r)
+		// 			{
+		// 				if (shp[x][y][r] > 6)
+		// 				{
+		// 					cout << "gaczj!: " << r << "side len: " << tmp.rows <<endl;
+		// 				}
+		// 			}
+		// 		}
+		// 	}
+		// }
+		// imshow("extLineEx", tmp);
+		// waitKey();
 
 
 
@@ -744,6 +799,47 @@ void detectAndSave( Mat frame )
 		// mexHat(tmp, tmp);
 		// imshow("extLine", tmp);
 		// waitKey();
+
+
+
+
+
+
+
+			// for (int x = 0; x < tmpCol.rows; ++x)
+			// {
+			// 	for (int y = 0; y < tmpCol.rows; ++y)
+			// 	{
+			// 		if (tmpCol.at<uchar>(x,y) > 125)
+			// 		{
+			// 			tmpCol.at<uchar>(x,y) = 255;
+			// 		}
+			// 		else
+			// 		{
+			// 			tmpCol.at<uchar>(x,y) = 0;
+			// 		}
+			// 	}
+			// }
+			// imshow("extLineEx", tmpCol);
+			// waitKey();
+			// sobel(tmpCol, line_xDeriv, line_yDeriv, line_grad, line_arc);//original
+			// detectLines(line_grad, line_arc, tmpCol);
+			// // std::vector<std::vector<std::vector<int> > > shp = detectCircles(line_grad, line_arc, tmp);
+
+			// // mexHat(tmp, tmp);
+
+			// imshow("extLineEx", tmpCol);
+			// waitKey();
+			// // imshow("extLineExCol", tmpCol);
+			// // waitKey();
+
+
+
+
+
+
+
+
 	}
 	for (int k = deleteme.size()-1; k >=0 ; --k)
 	{
