@@ -576,6 +576,50 @@ void detectAndSave( Mat frame )
 				continue;
 			}
 
+
+			//top-left inside and area smaller
+			if ( brightSquares[i].y > brightSquares[j].y - SQUARETHRESHOLD &&
+				brightSquares[i].x > brightSquares[j].x - SQUARETHRESHOLD &&
+				brightSquares[i].height * brightSquares[i].width < brightSquares[j].height * brightSquares[j].width &&
+				abs( brightSquares[i].y + brightSquares[i].height - brightSquares[j].y -brightSquares[j].height ) < SQUARETHRESHOLD + 20 &&
+				abs( brightSquares[i].x + brightSquares[i].width - brightSquares[j].x -brightSquares[j].width ) < SQUARETHRESHOLD + 20 )
+			{
+				// brightSquares.erase(brightSquares.begin()+ i);
+				deleteme.push_back(i);
+				// break;
+				continue;
+			}
+
+			//bottom-right inside and area smaller
+			if ( abs( brightSquares[i].y - brightSquares[j].y ) < SQUARETHRESHOLD + 20 &&
+				abs( brightSquares[i].x - brightSquares[j].x ) < SQUARETHRESHOLD + 20 &&
+				brightSquares[i].height * brightSquares[i].width < brightSquares[j].height * brightSquares[j].width &&
+				brightSquares[i].y + brightSquares[i].height < brightSquares[j].y +brightSquares[j].height + SQUARETHRESHOLD &&
+				brightSquares[i].x + brightSquares[i].width < brightSquares[j].x +brightSquares[j].width + SQUARETHRESHOLD )
+			{
+				// brightSquares.erase(brightSquares.begin()+ i);
+				deleteme.push_back(i);
+				// break;
+				continue;
+			}
+
+			// // if any of boundaries meet
+			// int difference = brightSquares[i].y - brightSquares[j].y + brightSquares[i].x - brightSquares[j].x ;
+			// if (
+			// 	// T-L
+			// 	abs(difference) < 5 ||
+			// 	// T-R
+			// 	abs(difference+ brightSquares[i].width-brightSquares[j].width) < 5 ||
+			// 	// B-L
+			// 	abs(difference+ brightSquares[i].height - brightSquares[j].height) < 5 ||
+			// 	// B-R
+			// 	abs(difference+ brightSquares[i].width-brightSquares[j].width+ brightSquares[i].height - brightSquares[j].height) < 5
+			// 	)
+			// {
+			// 	deleteme.push_back(i);
+			// 	continue;
+			// }
+
 			// //dartboards are most common in rows -- probability prior
 			// for (int l = 0; l < brightSpots.size(); ++l)
 			// {
@@ -653,6 +697,49 @@ void detectAndSave( Mat frame )
 				// break;
 				continue;
 			}
+
+
+
+
+			//top-left inside and area smaller
+			if ( brightSquares[i].y > brightSquares[j].y - SQUARETHRESHOLD &&
+				brightSquares[i].x > brightSquares[j].x - SQUARETHRESHOLD &&
+				brightSquares[i].height * brightSquares[i].width < brightSquares[j].height * brightSquares[j].width &&
+				abs( brightSquares[i].y + brightSquares[i].height - brightSquares[j].y -brightSquares[j].height ) < SQUARETHRESHOLD + 20 &&
+				abs( brightSquares[i].x + brightSquares[i].width - brightSquares[j].x -brightSquares[j].width ) < SQUARETHRESHOLD +20)
+			{
+				deleteme.push_back(i);
+				continue;
+			}
+
+			//bottom-right inside and area smaller
+			if ( abs( brightSquares[i].y - brightSquares[j].y ) < SQUARETHRESHOLD + 20 &&
+				abs( brightSquares[i].x - brightSquares[j].x ) < SQUARETHRESHOLD + 20 &&
+				brightSquares[i].height*brightSquares[i].width < brightSquares[j].height*brightSquares[j].width &&
+				brightSquares[i].y + brightSquares[i].height < brightSquares[j].y +brightSquares[j].height + SQUARETHRESHOLD &&
+				brightSquares[i].x + brightSquares[i].width < brightSquares[j].x +brightSquares[j].width + SQUARETHRESHOLD )
+			{
+				deleteme.push_back(i);
+				continue;
+			}
+
+
+			// // if any of boundaries meet
+			// int difference = brightSquares[i].y - brightSquares[j].y + brightSquares[i].x - brightSquares[j].x ;
+			// if (
+			// 	// T-L
+			// 	abs(difference) < 5 ||
+			// 	// T-R
+			// 	abs(difference+ brightSquares[i].width-brightSquares[j].width) < 5 ||
+			// 	// B-L
+			// 	abs(difference+ brightSquares[i].height - brightSquares[j].height) < 5 ||
+			// 	// B-R
+			// 	abs(difference+ brightSquares[i].width-brightSquares[j].width+ brightSquares[i].height - brightSquares[j].height) < 5
+			// 	)
+			// {
+			// 	deleteme.push_back(i);
+			// 	continue;
+			// }
 
 			// //dartboards are most common in rows -- probability prior
 			// for (int l = 0; l < brightSpots.size(); ++l)
@@ -752,7 +839,7 @@ void detectAndSave( Mat frame )
 			//dartboards are most common in rows -- probability prior
 			for (int l = 0; l < brightSpots.size(); ++l)
 			{
-				if ( abs(brightSquares[i].y+(0.5*brightSquares[i].width) - brightSpots[l].x) > 70 )
+				if ( abs(brightSquares[i].y+(0.5*brightSquares[i].width) - brightSpots[l].x) > BOARDHORIZONT )
 				{
 					deleteme.push_back(i);
 					break;
@@ -761,26 +848,32 @@ void detectAndSave( Mat frame )
 
 		// if (!(v[0] > 0.1 && v[1] >0.1 && v[2]<0.1) || !(v[4]+v[4]+v[5]>0.75))
 		// {
+
+
+
+
+			//To ZOSTAWIC POMIMO KOMENTARZA
+			// {
 			for (int g = 0; g < 6; ++g)
 			{
-				cout << "laisla bonita: " << v[g] << endl;
+				cout << "La Isla Bonita: " << v[g] << endl;
 			}
 			cout << "=================================" << endl;
-
+			// }
 
 			// put tmp into big image
-			Mat abba (original.rows, original.cols, CV_8U, cv::Scalar::all(0));
-			int b = (original.rows-tmp.rows)/2;
-			int e =(original.cols-tmp.cols)/2;
-			for (int x = 0; x < tmp.rows; ++x)
-			{
-				for (int y = 0; y < tmp.cols; ++y)
-				{
-					abba.at<uchar>(b+x,e+y) = tmp.at<uchar>(x,y);
-				}
-			}
-			imshow("lol", abba);
-			waitKey();
+			// Mat abba (original.rows, original.cols, CV_8U, cv::Scalar::all(0));
+			// int b = (original.rows-tmp.rows)/2;
+			// int e =(original.cols-tmp.cols)/2;
+			// for (int x = 0; x < tmp.rows; ++x)
+			// {
+			// 	for (int y = 0; y < tmp.cols; ++y)
+			// 	{
+			// 		abba.at<uchar>(b+x,e+y) = tmp.at<uchar>(x,y);
+			// 	}
+			// }
+			// imshow("lol", abba);
+			// waitKey();
 
 		// logo_cascade.detectMultiScale( abba, facesSmall, 1.1, 1, 0|CV_HAAR_SCALE_IMAGE, Size(15,15), Size(tmp.cols-15,tmp.cols-15) );
 		// for (int x = 0; x < facesSmall.size(); ++x)
@@ -995,5 +1088,6 @@ void detectAndSave( Mat frame )
 	// imshow("output",frame);
 	// waitKey();
 	imwrite( "output.jpg", frame );
+	cout << "___________________________\nEXPECTED EOF\n---------------------------" << endl;
 
 }
