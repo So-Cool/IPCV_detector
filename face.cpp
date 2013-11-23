@@ -752,7 +752,7 @@ void detectAndSave( Mat frame )
 			//dartboards are most common in rows -- probability prior
 			for (int l = 0; l < brightSpots.size(); ++l)
 			{
-				if ( abs(brightSquares[i].y+(0.5*brightSquares[i].width) - brightSpots[l].x) > 75 )
+				if ( abs(brightSquares[i].y+(0.5*brightSquares[i].width) - brightSpots[l].x) > 70 )
 				{
 					deleteme.push_back(i);
 					break;

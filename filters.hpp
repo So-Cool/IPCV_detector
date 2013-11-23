@@ -27,7 +27,7 @@
 //maximum number of circles per image
 #define MAXCIRCNO 3
 
-#define SQUARETHRESHOLD 20
+#define SQUARETHRESHOLD 30//20
 
 #define DELETECIRCLE 65
 
