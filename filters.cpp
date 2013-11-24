@@ -265,14 +265,14 @@ std::vector<std::vector<std::vector<int> > > detectCircles(const cv::Mat& grad, 
 	std::vector<std::vector<std::vector<int> > > houghSpace (CIRCLEROWS+1, std::vector<std::vector<int> > (CIRCLECOLS+1, std::vector<int>(radiusmax-RMIN, 0) ) ) ;
 	cv::Mat circleHoughSpace = cv::Mat(grad.rows, grad.cols, CV_64F, cv::Scalar::all(0));
 
-	cout << "Thrsh: " << HOUGHDETECTTRESHOLD-25*iteration << endl;
+	cout << "Thrsh: " << HOUGHDETECTTRESHOLD-30*iteration << endl;
 
 	// threshold the gradient image after normalization
 	for(int i = 0; i < grad.rows; ++i)
 	{
 		for (int j = 0; j < grad.cols; ++j)
 		{
-			if (grad.at<double>(i, j) > (HOUGHDETECTTRESHOLD-25*iteration) )
+			if (grad.at<double>(i, j) > (HOUGHDETECTTRESHOLD-30*iteration) )
 			{
 
 				// CIRCLE DETECTION

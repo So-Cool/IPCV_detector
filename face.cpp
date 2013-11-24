@@ -136,11 +136,8 @@ void detectAndSave( Mat frame )
 
 
 	//choose the coordinates of brightest points
-	int rowsmax = 0;
-	int colsmax = 0;
 	int radmax = 0;
 	int vmax = 0;
-	int tempmax = 0;
 	bool notfound = true;
 
 	do
@@ -164,11 +161,8 @@ void detectAndSave( Mat frame )
 		mexHat(outCRC, temp8Bit);
 		mexHat(temp8Bit, temp8Bit);
 
-		rowsmax = 0;
-		colsmax = 0;
 		radmax = 0;
 		vmax = 0;
-		tempmax = 0;
 		notfound = true;
 
 		deleteme.clear();
@@ -186,11 +180,8 @@ void detectAndSave( Mat frame )
 			{
 				if (temp8Bit.at<uchar>(i,j) > CIRCLETHRESHOLD  )
 				{
-					rowsmax = 0;
-					colsmax = 0;
 					radmax = 0;
 					vmax = 0;
-					tempmax = 0;
 
 					for (int k = 0; k < RMAX-RMIN; ++k)
 					{
@@ -313,7 +304,7 @@ void detectAndSave( Mat frame )
     // providing a negative number will create a filled circle
     int thickness = 2;
 	// Parameters for circle
-    cv::Scalar redColour(255, 0, 0);
+    cv::Scalar redColour(0, 255, 0);
     // 8-connected line
     int linetype = 8; 
 
@@ -350,6 +341,9 @@ void detectAndSave( Mat frame )
 	cv::Mat line_xDeriv, line_yDeriv, line_grad, line_arc;
 	bool breakable = false;
 
+
+	//NACHOZI I MA PODOBNY ROZMIAR <- USUN!!!
+
 	for( int i = 0; i < faces.size(); i++ )
 	{
 		breakable = false;
@@ -366,6 +360,40 @@ void detectAndSave( Mat frame )
 				break;
 			}
 
+            // if one of vertices of square is in the circle delete it
+            // REMEMBER THAT FIRST DELETE REDUNDANT CIRCLES:
+            //top-left
+            if (faces[i].x < brightSpots[j].y + brightR[j] && faces[i].x > brightSpots[j].y - brightR[j] && //horizontal lining
+                    faces[i].y > brightSpots[j].x - brightR[j] && faces[i].y < brightSpots[j].x + brightR[j] && //vertical lining
+                    abs( brightR[j] - faces[i].width ) < 17 ) // similar area
+            {
+                    breakable = true;
+                    break;
+            }
+            //top-right
+            else if (faces[i].x < brightSpots[j].y + brightR[j] && faces[i].x > brightSpots[j].y - brightR[j] && //horizontal lining
+                    faces[i].y + faces[i].width > brightSpots[j].x - brightR[j] && faces[i].y + faces[i].width < brightSpots[j].x + brightR[j] && //vertical lining
+                    abs( brightR[j] - faces[i].width ) < 17 ) // similar area
+            {
+                    breakable = true;
+                    break;
+            }
+            //bottom-right
+            else if (faces[i].x + faces[i].height < brightSpots[j].y + brightR[j] && faces[i].x + faces[i].height > brightSpots[j].y - brightR[j] && //horizontal lining
+                    faces[i].y + faces[i].width > brightSpots[j].x - brightR[j] && faces[i].y + faces[i].width < brightSpots[j].x + brightR[j] && //vertical lining
+                    abs( brightR[j] - faces[i].width ) < 17 ) // similar area
+            {
+                    breakable = true;
+                    break;
+            }
+            //bottom-left
+            else if (faces[i].x + faces[i].height < brightSpots[j].y + brightR[j] && faces[i].x + faces[i].height > brightSpots[j].y - brightR[j] && //horizontal lining
+                    faces[i].y > brightSpots[j].x - brightR[j] && faces[i].y < brightSpots[j].x + brightR[j] && //vertical lining
+                    abs( brightR[j] - faces[i].width ) < 17 ) // similar area
+            {
+                    breakable = true;
+                    break;
+            }
 		}
 		if (breakable)
 		{
@@ -389,6 +417,40 @@ void detectAndSave( Mat frame )
 				breakable = true;
 				break;
 			}
+            // if one of vertices of square is in the circle delete it
+            // REMEMBER THAT FIRST DELETE REDUNDANT CIRCLES:
+            //top-left
+            if (faces1[i].x < brightSpots[j].y + brightR[j] && faces1[i].x > brightSpots[j].y - brightR[j] && //horizontal lining
+                faces1[i].y > brightSpots[j].x - brightR[j] && faces1[i].y < brightSpots[j].x + brightR[j] && //vertical lining
+                abs( brightR[j] - faces1[i].width ) < 17 ) // similar area
+            {
+                    breakable = true;
+                    break;
+            }
+            //top-right
+            else if (faces1[i].x < brightSpots[j].y + brightR[j] && faces1[i].x > brightSpots[j].y - brightR[j] && //horizontal lining
+                    faces1[i].y + faces1[i].width > brightSpots[j].x - brightR[j] && faces1[i].y + faces1[i].width < brightSpots[j].x + brightR[j] && //vertical lining
+                    abs( brightR[j] - faces1[i].width ) < 17 ) // similar area
+            {
+                    breakable = true;
+                    break;
+            }
+            //bottom-right
+            else if (faces1[i].x + faces1[i].height < brightSpots[j].y + brightR[j] && faces1[i].x + faces1[i].height > brightSpots[j].y - brightR[j] && //horizontal lining
+                    faces1[i].y + faces1[i].width > brightSpots[j].x - brightR[j] && faces1[i].y + faces1[i].width < brightSpots[j].x + brightR[j] && //vertical lining
+                    abs( brightR[j] - faces1[i].width ) < 17 ) // similar area
+            {
+                    breakable = true;
+                    break;
+            }
+            //bottom-left
+            else if (faces1[i].x + faces1[i].height < brightSpots[j].y + brightR[j] && faces1[i].x + faces1[i].height > brightSpots[j].y - brightR[j] && //horizontal lining
+                    faces1[i].y > brightSpots[j].x - brightR[j] && faces1[i].y < brightSpots[j].x + brightR[j] && //vertical lining
+                    abs( brightR[j] - faces1[i].width ) < 17 ) // similar area
+            {
+                    breakable = true;
+                    break;
+            }
 		}
 		if (breakable)
 		{
@@ -617,7 +679,7 @@ void detectAndSave( Mat frame )
 	// print detected squares
 	for (int i = 0; i < brightSquares.size(); ++i)
 	{
-		rectangle(frame, Point(brightSquares[i].x, brightSquares[i].y), Point(brightSquares[i].x + brightSquares[i].width, brightSquares[i].y + brightSquares[i].height), Scalar( 0, 255, 255 ), 2);
+		rectangle(frame, Point(brightSquares[i].x, brightSquares[i].y), Point(brightSquares[i].x + brightSquares[i].width, brightSquares[i].y + brightSquares[i].height), Scalar( 255, 0, 0 ), 2);
 	}
 
 	//-- Save what you got

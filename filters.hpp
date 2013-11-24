@@ -4,7 +4,7 @@
 #include "opencv.hpp"
 
 #define IMGTHRESHOLD 50
-#define HOUGHDETECTTRESHOLD 180
+#define HOUGHDETECTTRESHOLD 190
 
 #define DTH 9 //delta angle * 100
 #define LINETHRESHOLD 220
