@@ -10,7 +10,6 @@ void sharpen(cv::Mat &input, int size, cv::Mat &out)
 	// intialise the output using the input
 	blurredOutput.create(input.size(), CV_64F) ; //input.type());
 
-	//was CV_64FC1
 	cv::Mat kernel = cv::Mat(size, size, CV_64F, cv::Scalar::all(-1));
 	kernel.at<double>(size/2, size/2) = size*size;
 
@@ -41,7 +40,6 @@ void sharpen(cv::Mat &input, int size, cv::Mat &out)
 					int kernely = n + kernelRadiusY;
 
 					// get the values from the padded image and the kernel
-					// int - int - uchar
 					double imageval = ( double ) paddedInput.at<uchar>( imagex, imagey );
 					double kernalval = kernel.at<double>( kernelx, kernely );
 
@@ -67,9 +65,8 @@ void mexHat(cv::Mat &input, cv::Mat &out)
 	int size = 17;
 	cv::Mat blurredOutput ;
 	// intialise the output using the input
-	blurredOutput.create(input.size(), CV_64F) ; //input.type());
+	blurredOutput.create(input.size(), CV_64F) ;
 
-	//was CV_64FC1
 	cv::Mat kernel = cv::Mat(size, size, CV_64F, cv::Scalar::all(0));
 	int jajko[17][17] = 
 		{
@@ -91,7 +88,6 @@ void mexHat(cv::Mat &input, cv::Mat &out)
 			{0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,0,0,0 },
 			{0,0,0,0,0,0,-1,-1,-1,-1,-1,0,0,0,0,0,0 }
 		};
-	// kernel.at<double>(size/2, size/2) = size*size;
 	for (int i = 0; i < size; ++i)
 	{
 		for (int j = 0; j < size; ++j)
@@ -129,7 +125,6 @@ void mexHat(cv::Mat &input, cv::Mat &out)
 					int kernely = n + kernelRadiusY;
 
 					// get the values from the padded image and the kernel
-					// int - int - uchar
 					double imageval = ( double ) paddedInput.at<double>( imagex, imagey );
 					double kernalval = kernel.at<double>( kernelx, kernely );
 
@@ -166,7 +161,6 @@ void sobel(const cv::Mat& image, cv::Mat& xDeriv, cv::Mat& yDeriv, cv::Mat& grad
 	cv::Mat divided, arcNorm;
 	arc = ( cv::Mat(xDeriv.rows, xDeriv.cols, CV_64F) ).clone() ;
 	cv::divide(yDeriv, xDeriv, divided);
-	// cout << "sobel doing" << endl;
 	for(int i = 0; i < divided.rows; i++)
 	{
 		for(int j =0; j < divided.cols; j++)
@@ -174,35 +168,20 @@ void sobel(const cv::Mat& image, cv::Mat& xDeriv, cv::Mat& yDeriv, cv::Mat& grad
 			arc.at<double>(i, j) = (double)atan2(yDeriv.at<double>(i,j), xDeriv.at<double>(i,j)) ;//* 180 / PI;
 		}
 	}
-	// cout << "sobel done" << endl;
 }
 
 
 // detect lines and threshold + log() to display
 // return vector with hough space
-// void
 std::vector<std::vector<int> > detectLines(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
 {
-	// cv::Mat lineHoughSpace = cv::Mat(grad.rows, grad.cols, CV_64F, cv::Scalar::all(0));
-
 	// theta ranges from 0-2PI = 0 - 628
 	// tho is dynamically adjusted from 0 to max_val based on diagonal
 	int diagonalSize = round(sqrt((double)std::pow((double)(grad.rows), 2) + (double)std::pow((double)(grad.cols),2)));
-	// cout << diagonalSize << "  " << grad.rows << "  " << grad.cols << endl ;
 	diagonalSize *= 2;
 
-	 // diagonalSize = round(diagonalSize/5);
-	 // cout << diagonalSize << endl;
-
 	std::vector<std::vector<int> > houghSpace (round(diagonalSize/5), std::vector<int>(628, 0) ) ;
-	// cv::Mat lineHoughSpace = cv::Mat(round(diagonalSize/5), 314+10, CV_64F, cv::Scalar::all(0)); //628
 	cv::Mat lineHoughSpace = cv::Mat(LINEYDIM, 314+10, CV_64F, cv::Scalar::all(0)); //628
-
-
-	// int ujemne = 0;
-	// int dodatnie = 0;
-	// double rem1 = 0;
-	// double rem2 = 0;
 
 	for(int i = 0; i < grad.rows; ++i)
 	{
@@ -212,60 +191,27 @@ std::vector<std::vector<int> > detectLines(const cv::Mat& grad, const cv::Mat& a
 			{
 
 				//LINE DETECTION
-				// for (int th = round(arc.at<double>(i, j)-DTH); th < round(arc.at<double>(i, j)+DTH); ++th)
 				int trows = lineHoughSpace.rows ;
 				int tcols = lineHoughSpace.cols ;
 				for (int th = (arc.at<double>(i,j)*100)-DTH; th < (arc.at<double>(i,j)*100)+DTH; ++th)
 				{
 					if (th<0) continue;
-					// cout << double(th)/100 << endl;
-					// double rho = i * cos(double(th)/100)+ j*sin(double(th)/100) ; //first
 					double rho = j * cos(double(th)/100)+ i*sin(double(th)/100) ; //second
-					// cout << rho+diagonalSize/2 << endl;
 
-					//invrease haff pace
-					// if(round(double(rho/10))<trows && round(double(rho/10))>=0 && round(double(th)/10)<tcols && round(double(th/10))>0)
-					// {
-					// 	lineHoughSpace.at<double>(round(double(rho/10)), round(double(th/10)) ) += 1 ;
-					// }
+					double temporary = rho ;
+					//shift
+					temporary += diagonalSize/2 ;
+					// scale to 0:1
+					temporary /= diagonalSize;
+					// rescale to LINeY
+					temporary *= LINEYDIM;
 
-					// if (rho+diagonalSize/2 <0)
-					// {
-					// 	ujemne++;
-					// } else {
-					// 	dodatnie++;
-					// }
-					// if (rho<rem1) rem1 = rho;
-					// if (rho>rem2) rem2 = rho;
-
-					// create hough space
-					// if(round(double(rho/10))<trows && round(double(rho/10))>=0 && round(double(th)/10)<tcols && round(double(th/10))>0)
-					// {
-						// cout << "first" << round(th) << " " << round(rho+diagonalSize/2) << endl;
-
-						double temporary = rho ;
-						//shift
-						temporary += diagonalSize/2 ;
-						// scale to 0:1
-						temporary /= diagonalSize;
-						// rescale to LINeY
-						temporary *= LINEYDIM;
-
-
-						houghSpace[round((rho+diagonalSize/2)/5)-1][round(th) ] += 1 ;
-						// cout << "second" << round(th) << " " << round(rho+diagonalSize/2) << endl;
-						lineHoughSpace.at<double>(round(temporary), round(th)) += 1 ;
-					// }
-
+					houghSpace[round((rho+diagonalSize/2)/5)-1][round(th) ] += 1 ;
+					lineHoughSpace.at<double>(round(temporary), round(th)) += 1 ;
 				}
 			}
 		}
 	}
-
-	// cout << "ujemne: " << ujemne << " " << dodatnie << endl;
-	// cout << rem1 << "  " << rem2 << endl;
-
-	// cout << "tu" << endl;
 	cv::Mat temp8b ;
 	cv::normalize(lineHoughSpace, temp8b, 0, 255, cv::NORM_MINMAX);
 	temp8b.convertTo(out, CV_8U);
@@ -306,33 +252,27 @@ std::vector<std::vector<int> > detectLines(const cv::Mat& grad, const cv::Mat& a
 
 // Detect circles with Hough transform
 // void
-std::vector<std::vector<std::vector<int> > > detectCircles(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out)
+std::vector<std::vector<std::vector<int> > > detectCircles(const cv::Mat& grad, const cv::Mat& arc, cv::Mat& out, int iteration)
 {
-	int radiusmax ;
+	int radiusmax = RMAX;
 
 	if (RMAX <= round(max(grad.rows, grad.cols)/2))
-	{
 		radiusmax = RMAX;
-	}
 	else
-	{
 		radiusmax = round(max(grad.rows, grad.cols)/2);
-	}
-	// cout << "radiusmax: " << radiusmax << endl;
 
 
-	// cv::vector<cv::Vec3d> circles ; //x,y,r
-	// std::vector<std::vector<std::vector<int> > > houghSpace (HOUGHY, std::vector<std::vector<int> > (HOUGHX, std::vector<int>(radiusmax-RMIN, 0) ) ) ;
-	std::vector<std::vector<std::vector<int> > > houghSpace (CIRCLEROWS, std::vector<std::vector<int> > (CIRCLECOLS, std::vector<int>(radiusmax-RMIN, 0) ) ) ;
+	std::vector<std::vector<std::vector<int> > > houghSpace (CIRCLEROWS+1, std::vector<std::vector<int> > (CIRCLECOLS+1, std::vector<int>(radiusmax-RMIN, 0) ) ) ;
 	cv::Mat circleHoughSpace = cv::Mat(grad.rows, grad.cols, CV_64F, cv::Scalar::all(0));
-	// threshold the gradient image after normalization
-	// cv::Mat gradNorm(grad.rows, grad.cols, CV_64F) ;
 
+	cout << "Thrsh: " << HOUGHDETECTTRESHOLD-25*iteration << endl;
+
+	// threshold the gradient image after normalization
 	for(int i = 0; i < grad.rows; ++i)
 	{
 		for (int j = 0; j < grad.cols; ++j)
 		{
-			if (grad.at<double>(i, j) > HOUGHDETECTTRESHOLD)
+			if (grad.at<double>(i, j) > (HOUGHDETECTTRESHOLD-25*iteration) )
 			{
 
 				// CIRCLE DETECTION
@@ -347,72 +287,30 @@ std::vector<std::vector<std::vector<int> > > detectCircles(const cv::Mat& grad, 
 					int trows = circleHoughSpace.rows ;
 					int tcols = circleHoughSpace.cols ;
 
-					cout <<
-						round(double(y1)/double(trows)*CIRCLEROWS) <<
-						round(double(y2)/double(trows)*CIRCLEROWS) <<
-						round(double(x1)/double(tcols)*CIRCLECOLS) <<
-						round(double(x2)/double(tcols)*CIRCLECOLS) << endl;
-
 					if ( round(y1)<trows && round(y1)>0 && round(x1)>0 && round(x1)<tcols )
 					{
 						circleHoughSpace.at<double>(round(y1), round(x1) ) += 1 ;
-						// houghSpace[y1*HOUGHY/trows][x1*HOUGHX/tcols][r-RMIN] += 1 ;
 						houghSpace[round((double)(y1)/(double)(trows)*CIRCLEROWS)][round((double)(x1)/(double)(tcols)*CIRCLECOLS)][r-RMIN] += 1 ;
-											cout <<
-
-						round((double)(y1)/(double)(trows)*CIRCLEROWS) << "  " <<
-
-						round((double)(x1)/(double)(tcols)*CIRCLECOLS) <<endl;
-
 					}
 					if ( round(y1)<trows && round(y1)>0 && round(x2)>0 && round(x2)<tcols )
 					{
 						circleHoughSpace.at<double>( round(y1), round(x2)  ) += 1 ;
-						// houghSpace[y1*HOUGHY/trows][x2*HOUGHX/tcols][r-RMIN] += 1 ;
 						houghSpace[round((double)(y1)/(double)(trows)*CIRCLEROWS)][round((double)(x2)/(double)(tcols)*CIRCLECOLS)][r-RMIN] += 1 ;
-
-					cout <<
-
-						round((double)(y1)/(double)(trows)*CIRCLEROWS) <<"  " <<
-
-						round((double)(x2)/(double)(tcols)*CIRCLECOLS) << endl;
-
 					}
 					if ( round(y2)<trows && round(y2)>0 && round(x1)>0 && round(x1)<tcols )
 					{
 						circleHoughSpace.at<double>(  round(y2), round(x1)  ) += 1 ;
-						// houghSpace[y2*HOUGHY/trows][x1*HOUGHX/tcols][r-RMIN] += 1 ;
 						houghSpace[round((double)(y2)/(double)(trows)*CIRCLEROWS)][round((double)(x1)/(double)(tcols)*CIRCLECOLS)][r-RMIN] += 1 ;
-
-
-					cout <<
-
-						round((double)(y2)/(double)(trows)*CIRCLEROWS) <<"  " <<
-
-						round((double)(x1)/(double)(tcols)*CIRCLECOLS) <<
-
-endl;
 					}
 					if ( round(y2)<trows && round(y2)>0 && round(x2)>0 && round(x2)<tcols )
 					{
 						circleHoughSpace.at<double>(  round(y2), round(x2)  ) += 1 ;
-						// houghSpace[y2*HOUGHY/trows][x2*HOUGHX/tcols][r-RMIN] += 1 ;
 						houghSpace[round((double)(y2)/(double)(trows)*CIRCLEROWS)][round((double)(x2)/(double)(tcols)*CIRCLECOLS)][r-RMIN] += 1 ;
-
-					cout <<
-
-						round((double)(y2)/(double)(trows)*CIRCLEROWS) <<"  " <<
-
-						round((double)(x2)/(double)(tcols)*CIRCLECOLS) << endl;
-
-
 					}
 				}
 			}
 		}
 	}
-		cout << "bangalow" << endl;
-
 
 	cv::Mat temp8b ;
 	cv::normalize(circleHoughSpace, temp8b, 0, 255, cv::NORM_MINMAX);
@@ -445,11 +343,6 @@ endl;
 		}
 	}
 	//convert
-	if(SHOW) cv::imshow("Hough space Circle", circleHoughSpace) ;
-	// imwrite( "output.jpg", circleHoughSpace );
-	if(SHOW) waitKey();
-
-	cout << "bangalow" << endl;
 
 	return houghSpace;
 }
@@ -473,10 +366,6 @@ void extractRegion(const Mat& input, Mat& output, int x, int y, int a)
 	cv::Mat temp8Bit;
 	cv::normalize(output, temp8Bit, 0, 255, cv::NORM_MINMAX);
 	temp8Bit.convertTo(output, CV_8U);
-	if(SHOW) cv::imshow("square extraction", output) ;
-	if(SHOW) waitKey();
-
-
 }
 
 bool checkHomogenity(const Mat& input)
@@ -491,13 +380,10 @@ bool checkHomogenity(const Mat& input)
  {
  	for (int j = 0; j < input.cols; ++j)
  	{
- 		// cout << c << "   " << temp.at<double>(i,j) << endl;
  		++c;
  		d +=  temp.at<double>(i,j);
  	}
  }
-  // cout << "d: " << d << " c: " << c << " e: " << e << endl;
-
 
  d /= c;
 
@@ -512,7 +398,6 @@ bool checkHomogenity(const Mat& input)
  	}
  }
 
- // cout << "d: " << d << " c: " << c << " e: " << e << endl;
  if (double((double(e)/c)*100) >  HOMOGENITYCOND) return true;
  else return false;
 
@@ -537,36 +422,11 @@ std::vector<double> nLvlTrsh( const Mat& input, Mat& output )
         {
             uchar tr = input.at<uchar>(i, j);
             ++o;
-            // if(tr < 35)
-            // {
-            //         input.at<uchar>(i, j) = 15 ;//0
-            // }
-            // else if(tr<70)
-            // {
-            //         input.at<uchar>(i, j) = 45;//40
-            // }
-            // else if (tr<105)
-            // {
-            //         input.at<uchar>(i, j) = 75;//80
-            // }
-            // else if (tr<140)
-            // {
-            //         input.at<uchar>(i, j) = 105;//120
-            // }
-///////////////////////////////////////////////////////////////////////////////
             if(tr < 100)
             {
                     output.at<uchar>(i, j) = 0;
                     ++a;
             }
-            // else if(tr<75)
-            // {
-            //         output.at<uchar>(i, j) = 60;
-            // }
-            // else if (tr<100)
-            // {
-            //         output.at<uchar>(i, j) = 80;
-            // }
             else if (tr<125)
             {
                     output.at<uchar>(i, j) = 100;
@@ -592,92 +452,6 @@ std::vector<double> nLvlTrsh( const Mat& input, Mat& output )
             	output.at<uchar>(i,j) = 255;
             	++f;
             }
-
-///////////////////////////////////////////////////////////////////////////////
-            //BEST EVA
-            // if(tr < 50)
-            // {
-            //         input.at<uchar>(i, j) = 10 ;//0
-            // }
-            // else if(tr<100)
-            // {
-            //         input.at<uchar>(i, j) = 50;//40
-            // }
-            // else if (tr<150)
-            // {
-            //         input.at<uchar>(i, j) = 90;//80
-            // }
-            // else if (tr<200)
-            // {
-            //         input.at<uchar>(i, j) = 130;//120
-            // }
-            // else if (tr<255)
-            // {
-            //         input.at<uchar>(i, j) = 190; //180
-            // }
-////////////////////////////////////////////////////////////////////////////////
-
-
-//                 if (tr < 25)
-//                 {
-//                         input.at<uchar>(i, j) = 10 ; //10 ;
-//                 }
-//                 else if (tr < 50)
-//                 {
-//                         input.at<uchar>(i, j) = 35 ; //30 ;
-//                 }
-//                 else if (tr < 75)
-//                 {
-//                         input.at<uchar>(i, j) = 60 ; //50 ;
-//                 }
-//                 else if (tr < 100)
-//                 {
-//                         input.at<uchar>(i, j) =  85; //70 ;
-//                 }
-//                 else if (tr < 125)
-//                 {
-//                         input.at<uchar>(i, j) =  110; //90 ;
-//                 }
-//                 else if (tr < 150)
-//                 {
-//                         input.at<uchar>(i, j) =  135; //110 ;
-//                 }
-//                 else if (tr < 175)
-//                 {
-//                         input.at<uchar>(i, j) =  160; //130 ;
-//                 }
-//                 else if (tr < 200)
-//                 {
-//                         input.at<uchar>(i, j) =  185; //150 ;
-//                 }
-//                 else if (tr < 225)
-//                 {
-//                         input.at<uchar>(i, j) =  210; //160 ;
-//                 }
-//                 else if (tr < 255)
-//                 {
-//                         input.at<uchar>(i, j) =  240; //180 ;
-//                 }
-            // else if (tr < 210)
-            // {
-            //         input.at<uchar>(i, j) =  195; //200 ;
-            // }
-            // else if (tr < 230)
-            // {
-            //         input.at<uchar>(i, j) =  215; //220 ;
-            // }
-            // else if (tr < 250)
-            // {
-            //         input.at<uchar>(i, j) =  235; //240 ;
-            // }
-            // else if (tr < 255)
-            // {
-            //         input.at<uchar>(i, j) =  250; //255 ;
-            // }
-            // else
-            // {
-            //         input.at<uchar>(i, j) = 0 ;
-            // }
         }
     }
 
@@ -689,7 +463,3 @@ std::vector<double> nLvlTrsh( const Mat& input, Mat& output )
     v.push_back(f/o);
     return v;
 }
-
-
-
-
