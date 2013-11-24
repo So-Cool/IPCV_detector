@@ -134,6 +134,8 @@ void detectAndSave( Mat frame )
 
 	std::vector<std::vector<std::vector<int> > > roundShapes = detectCircles(gradCRC, arcCRC, outCRC);
 
+	cout << "bangla" << endl;
+
 	// threshold Hough space
 	for (int i = 0; i < outCRC.rows; ++i)
 	{
@@ -176,6 +178,11 @@ void detectAndSave( Mat frame )
 	std::vector<cv::Point> brightSpots;
 	std::vector<int> brightR;
 	std::vector<int> brightValue;
+
+
+	int trows = outCRC.rows ;
+	int tcols = outCRC.cols ;
+
 	for (int i = 0; i < temp8Bit.rows; ++i)
 	{
 		for (int j = 0; j < temp8Bit.cols; ++j)
@@ -190,9 +197,9 @@ void detectAndSave( Mat frame )
 
 				for (int k = RMIN; k < RMAX; ++k)
 				{
-					if ( roundShapes[i][j][k] > vmax)
+					if ( roundShapes[round(double(i)/double(trows)*CIRCLEROWS)][round(double(j)/double(tcols)*CIRCLECOLS)][k] > vmax)
 					{
-						vmax = roundShapes[i][j][k];
+						vmax = roundShapes[round(double(i)/double(trows)*CIRCLEROWS)][round(double(j)/double(tcols)*CIRCLECOLS)][k];
 						radmax = k;
 						// ++lol;
 					}
@@ -221,7 +228,7 @@ void detectAndSave( Mat frame )
 							if  ( abs(brightSpots[l].x - i ) < PROXIMITY &&
 									abs( brightSpots[l].y - j ) < PROXIMITY)
 							{
-								if( roundShapes[i][j][radmax] > roundShapes[brightSpots[l].x][brightSpots[l].y][brightR[l]]
+								if( roundShapes[round(double(i)/double(trows)*CIRCLEROWS)][round(double(j)/double(tcols)*CIRCLECOLS)][radmax] > roundShapes[round(double(brightSpots[l].x)/double(trows)*CIRCLEROWS)][round(double(brightSpots[l].y)/double(tcols)*CIRCLECOLS)][brightR[l]]
 									&& radmax*2<imageCols && radmax*2<imageRows
 									&& i+radmax<imageRows && i-radmax>0 &&  j+radmax<imageCols && j-radmax>0 )
 								{

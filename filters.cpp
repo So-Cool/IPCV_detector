@@ -323,7 +323,7 @@ std::vector<std::vector<std::vector<int> > > detectCircles(const cv::Mat& grad, 
 
 	// cv::vector<cv::Vec3d> circles ; //x,y,r
 	// std::vector<std::vector<std::vector<int> > > houghSpace (HOUGHY, std::vector<std::vector<int> > (HOUGHX, std::vector<int>(radiusmax-RMIN, 0) ) ) ;
-	std::vector<std::vector<std::vector<int> > > houghSpace (grad.rows, std::vector<std::vector<int> > (grad.cols, std::vector<int>(radiusmax-RMIN, 0) ) ) ;
+	std::vector<std::vector<std::vector<int> > > houghSpace (CIRCLEROWS, std::vector<std::vector<int> > (CIRCLECOLS, std::vector<int>(radiusmax-RMIN, 0) ) ) ;
 	cv::Mat circleHoughSpace = cv::Mat(grad.rows, grad.cols, CV_64F, cv::Scalar::all(0));
 	// threshold the gradient image after normalization
 	// cv::Mat gradNorm(grad.rows, grad.cols, CV_64F) ;
@@ -347,35 +347,72 @@ std::vector<std::vector<std::vector<int> > > detectCircles(const cv::Mat& grad, 
 					int trows = circleHoughSpace.rows ;
 					int tcols = circleHoughSpace.cols ;
 
+					cout <<
+						round(double(y1)/double(trows)*CIRCLEROWS) <<
+						round(double(y2)/double(trows)*CIRCLEROWS) <<
+						round(double(x1)/double(tcols)*CIRCLECOLS) <<
+						round(double(x2)/double(tcols)*CIRCLECOLS) << endl;
+
 					if ( round(y1)<trows && round(y1)>0 && round(x1)>0 && round(x1)<tcols )
 					{
 						circleHoughSpace.at<double>(round(y1), round(x1) ) += 1 ;
 						// houghSpace[y1*HOUGHY/trows][x1*HOUGHX/tcols][r-RMIN] += 1 ;
-						houghSpace[round(y1)][round(x1)][r-RMIN] += 1 ;
+						houghSpace[round((double)(y1)/(double)(trows)*CIRCLEROWS)][round((double)(x1)/(double)(tcols)*CIRCLECOLS)][r-RMIN] += 1 ;
+											cout <<
+
+						round((double)(y1)/(double)(trows)*CIRCLEROWS) << "  " <<
+
+						round((double)(x1)/(double)(tcols)*CIRCLECOLS) <<endl;
+
 					}
 					if ( round(y1)<trows && round(y1)>0 && round(x2)>0 && round(x2)<tcols )
 					{
 						circleHoughSpace.at<double>( round(y1), round(x2)  ) += 1 ;
 						// houghSpace[y1*HOUGHY/trows][x2*HOUGHX/tcols][r-RMIN] += 1 ;
-						houghSpace[round(y1)][round(x2)][r-RMIN] += 1 ;
+						houghSpace[round((double)(y1)/(double)(trows)*CIRCLEROWS)][round((double)(x2)/(double)(tcols)*CIRCLECOLS)][r-RMIN] += 1 ;
+
+					cout <<
+
+						round((double)(y1)/(double)(trows)*CIRCLEROWS) <<"  " <<
+
+						round((double)(x2)/(double)(tcols)*CIRCLECOLS) << endl;
+
 					}
 					if ( round(y2)<trows && round(y2)>0 && round(x1)>0 && round(x1)<tcols )
 					{
 						circleHoughSpace.at<double>(  round(y2), round(x1)  ) += 1 ;
 						// houghSpace[y2*HOUGHY/trows][x1*HOUGHX/tcols][r-RMIN] += 1 ;
-						houghSpace[round(y2)][round(x1)][r-RMIN] += 1 ;
+						houghSpace[round((double)(y2)/(double)(trows)*CIRCLEROWS)][round((double)(x1)/(double)(tcols)*CIRCLECOLS)][r-RMIN] += 1 ;
+
+
+					cout <<
+
+						round((double)(y2)/(double)(trows)*CIRCLEROWS) <<"  " <<
+
+						round((double)(x1)/(double)(tcols)*CIRCLECOLS) <<
+
+endl;
 					}
 					if ( round(y2)<trows && round(y2)>0 && round(x2)>0 && round(x2)<tcols )
 					{
 						circleHoughSpace.at<double>(  round(y2), round(x2)  ) += 1 ;
 						// houghSpace[y2*HOUGHY/trows][x2*HOUGHX/tcols][r-RMIN] += 1 ;
-						houghSpace[round(y2)][round(x2)][r-RMIN] += 1 ;
+						houghSpace[round((double)(y2)/(double)(trows)*CIRCLEROWS)][round((double)(x2)/(double)(tcols)*CIRCLECOLS)][r-RMIN] += 1 ;
+
+					cout <<
+
+						round((double)(y2)/(double)(trows)*CIRCLEROWS) <<"  " <<
+
+						round((double)(x2)/(double)(tcols)*CIRCLECOLS) << endl;
+
 
 					}
 				}
 			}
 		}
 	}
+		cout << "bangalow" << endl;
+
 
 	cv::Mat temp8b ;
 	cv::normalize(circleHoughSpace, temp8b, 0, 255, cv::NORM_MINMAX);
@@ -411,6 +448,8 @@ std::vector<std::vector<std::vector<int> > > detectCircles(const cv::Mat& grad, 
 	if(SHOW) cv::imshow("Hough space Circle", circleHoughSpace) ;
 	// imwrite( "output.jpg", circleHoughSpace );
 	if(SHOW) waitKey();
+
+	cout << "bangalow" << endl;
 
 	return houghSpace;
 }
