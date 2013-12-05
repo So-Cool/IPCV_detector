@@ -41,3 +41,6 @@ report/*.aux
 report/*.log
 # report/*.pdf
 *.psd
+
+# Version to submit
+sub.zip
